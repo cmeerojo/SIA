@@ -14,9 +14,9 @@ class UserPolicy
         return $user->isAdmin();
     }
 
-    public function view(User $user, User $model)
+    public function view(User $authUser, User $user)
     {
-        return $user->isAdmin() || $user->id === $model->id;
+        return $authUser->role === 'admin' || $authUser->id === $user->id;
     }
 
     public function create(User $user)
@@ -24,10 +24,11 @@ class UserPolicy
         return $user->isAdmin();
     }
 
-    public function update(User $user, User $model)
-    {
-        return $user->isAdmin() || $user->id === $model->id;
-    }
+    public function update(User $authUser, User $user)
+{
+    // Allow admins to edit any user, or users to edit themselves
+    return $authUser->role === 'admin' || $authUser->id === $user->id;
+}
 
     public function delete(User $user, User $model)
     {
