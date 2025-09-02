@@ -43,7 +43,7 @@ class UserManagementController extends Controller
         }
 
         if (Auth::user()->isAdmin()) {
-            $rules['role'] = ['required', 'in:admin,user'];
+            $rules['role'] = ['required', 'in:admin,user,manager'];
             $rules['is_active'] = ['boolean'];
         }
 

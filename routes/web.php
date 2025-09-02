@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
+use App\Http\Controllers\ItemController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('/items', [ItemController::class, 'index'])->name('items.index');
 
 Route::get('/', function () {
     return view('home');
@@ -16,8 +19,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
-    
-    // User management routes
     Route::resource('users', UserManagementController::class);
 });
 
