@@ -3,25 +3,24 @@
 Follow these steps to run the project locally:
 
 1. **Clone the Repository**
-   ```bash
+   ```
    git clone https://github.com/cmeerojo/SIA.git
    cd SIA
 2. **Install Dependencies**
 Make sure you have all prerequisites installed (e.g., PHP, Composer, Node.js, npm)
 
-    ```bash
+    ```
     composer install
     npm install && npm run dev
 
 3. Configure Environment File
 
-    ```bash
-    Copy code
+    ```
     cp .env.example .env
     
 4. Then, edit .env with your specific settings (database credentials, APP_URL, etc.):
 
-    ```bash
+    ```
     DB_CONNECTION=pgsql/mysql/sqlite
     DB_HOST=127.0.0.1
     DB_PORT=5432
@@ -31,18 +30,18 @@ Make sure you have all prerequisites installed (e.g., PHP, Composer, Node.js, np
 
 5.Generate Application Key
 
-    ```bash
+    ```
     php artisan key:generate
     
 6.Run Migrations & Seed Database
 
-    ```bash
+    ```
     php artisan migrate
     php artisan db:seed
 
 7.Serve the Application
 
-    ```bash
+    ```
     Copy code
     php artisan serve
     Then visit http://localhost:8000 (or, if you're using Laravel Herd or similar, follow your usual local dev flow).
