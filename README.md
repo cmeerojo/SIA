@@ -4,47 +4,48 @@ Follow these steps to run the project locally:
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/YourRepoName.git
-   cd YourRepoName
-Install Dependencies
+   git clone https://github.com/cmeerojo/SIA.git
+   cd SIA
+2. **Install Dependencies**
 Make sure you have all prerequisites installed (e.g., PHP, Composer, Node.js, npm)
 
-bash
-Copy code
-composer install
-npm install && npm run dev
-Configure Environment File
+    ```bash
+    composer install
+    npm install && npm run dev
 
-bash
-Copy code
-cp .env.example .env
-Then, edit .env with your specific settings (database credentials, APP_URL, etc.):
+3. Configure Environment File
 
-ini
-Copy code
-DB_CONNECTION=pgsql/mysql/sqlite
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=yourdatabasename
-DB_USERNAME=yourusername
-DB_PASSWORD=yourpassword
-Generate Application Key
+    ```bash
+    Copy code
+    cp .env.example .env
+    
+4. Then, edit .env with your specific settings (database credentials, APP_URL, etc.):
 
-bash
-Copy code
-php artisan key:generate
-Run Migrations & Seed Database
+    ```bash
+    DB_CONNECTION=pgsql/mysql/sqlite
+    DB_HOST=127.0.0.1
+    DB_PORT=5432
+    DB_DATABASE=yourdatabasename
+    DB_USERNAME=yourusername
+    DB_PASSWORD=yourpassword
 
-bash
-Copy code
-php artisan migrate
-php artisan db:seed
-Serve the Application
+5.Generate Application Key
 
-bash
-Copy code
-php artisan serve
-Then visit http://localhost:8000 (or, if you're using Laravel Herd or similar, follow your usual local dev flow).
+    ```bash
+    php artisan key:generate
+    
+6.Run Migrations & Seed Database
+
+    ```bash
+    php artisan migrate
+    php artisan db:seed
+
+7.Serve the Application
+
+    ```bash
+    Copy code
+    php artisan serve
+    Then visit http://localhost:8000 (or, if you're using Laravel Herd or similar, follow your usual local dev flow).
 
 Requirements
 PHP >= 8.x
