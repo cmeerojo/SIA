@@ -73,5 +73,13 @@ class UserManagementController extends Controller
         return redirect()->route('users.index')->with('success', 'User deleted successfully.');
     }
 
+    public function block(User $user)
+    {
+        $this->authorize('update', $user);
+        $user->is_active = !$user->is_active;
+        $user->save();
+        return redirect()->route('users.index')->with('success', $user->is_active ? 'User unblocked successfully.' : 'User blocked successfully.');
+    }
+
     use AuthorizesRequests;
 }
