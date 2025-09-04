@@ -63,6 +63,13 @@
                                             @endcan
                                             @can('update', $user)
                                                 <a href="{{ route('users.edit', $user) }}" class="text-indigo-600 hover:text-indigo-900 mr-2">Edit</a>
+                                                <form action="{{ route('users.block', $user) }}" method="POST" class="inline">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit" class="text-yellow-600 hover:text-yellow-900 mr-2" onclick="return confirm('Are you sure you want to {{ $user->is_active ? 'block' : 'unblock' }} this user?')">
+                                                        {{ $user->is_active ? 'Block' : 'Unblock' }}
+                                                    </button>
+                                                </form>
                                             @endcan
                                             @can('delete', $user)
                                                 <form action="{{ route('users.destroy', $user) }}" method="POST" class="inline">

@@ -49,6 +49,14 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // Block inactive users
+        if (!Auth::user()->is_active) {
+            Auth::logout();
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been blocked. Please contact the administrator.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 
