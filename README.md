@@ -29,19 +29,19 @@ Make sure you have all prerequisites installed (e.g., PHP, Composer, Node.js, np
     DB_PASSWORD=yourpassword
 
 5.Generate Application Key
-
     ```
-    php artisan key:generate
     
-6.Run Migrations & Seed Database
+     php artisan key:generate
 
+6.Run Migrations & Seed Database
     ```
+    
     php artisan migrate
     php artisan db:seed
 
 7.Serve the Application
-
     ```
+    
     php artisan serve
     Then visit http://localhost:8000 (or, if you're using Laravel Herd or similar, follow your usual local dev flow).
 
