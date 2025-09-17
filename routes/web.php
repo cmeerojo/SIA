@@ -3,9 +3,15 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\ItemController;
+use App\Http\Controllers\CustomerController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/items', [ItemController::class, 'index'])->name('items.index');
+Route::resource('customers', CustomerController::class);
+
+Route::resource('items', ItemController::class);
+
+    Route::patch('/items/{item}/hide', [ItemController::class, 'hide'])->middleware('auth') ->name('items.hide');
+    Route::patch('/items/{item}/unhide', [ItemController::class, 'unhide'])->middleware('auth') ->name('items.unhide');
 
 Route::get('/', function () {
     return view('home');

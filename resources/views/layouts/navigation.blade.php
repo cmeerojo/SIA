@@ -16,9 +16,15 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     @if(auth()->user() && auth()->user()->isManager())
-                        <x-nav-link :href="route('items.index')" :active="request()->routeIs('items.index')">
-                            {{ __('Item Management') }}
-                        </x-nav-link>
+                    <x-nav-link :href="route('items.index')" :active="request()->routeIs('items.index')">
+                        {{ __('Item Management') }}
+                    </x-nav-link>
+                    @endif
+                    
+                    @if(auth()->user()?->role === 'manager')
+                    <x-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.index')">
+                        {{ __('Customers') }}
+                    </x-nav-link>
                     @endif
                 </div>
             </div>
@@ -76,9 +82,13 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             @if(auth()->user() && auth()->user()->isManager())
-                <x-responsive-nav-link :href="route('items.index')" :active="request()->routeIs('items.index')">
-                    {{ __('Item Management') }}
-                </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('items.index')" :active="request()->routeIs('items.index')">
+                {{ __('Item Management') }}
+            </x-responsive-nav-link>
+
+            <x-responsive-nav-link href="route('customers.index')" :active="request()->routeIs('customers.index')">
+                {{ __('Customers') }}
+            </x-responsive-nav-link>
             @endif
         </div>
 

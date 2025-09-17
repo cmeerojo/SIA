@@ -73,3 +73,14 @@ Database: PostgreSQL or MySQL
 Package Management: Composer, NPM
 
 Version Control: Git & GitHub
+
+
+Checklist:
+
+1. Change default laravel logo to rocorps logo
+
+2. Item list sizes to box type instead of standard string text
+
+3. Fix hide/unhide feature in item management
+
+4. ALWAYS SAVE NEW FILES
