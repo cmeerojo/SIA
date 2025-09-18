@@ -255,11 +255,11 @@
                                     <div class="text-2xl text-blue-500">📋</div>
                                     <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded-full">Orders</span>
                                 </div>
-                                <h4 class="font-semibold text-gray-900 mb-2">Order History</h4>
+                                <h4 class="font-semibold text-gray-900 mb-2">Item Management</h4>
                                 <p class="text-sm text-gray-600 mb-4">View your past LPG orders and delivery history.</p>
-                                <button class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg inline-flex items-center space-x-2 hover:scale-105 transform transition-all">
-                                    <span>View Orders</span>
-                                </button>
+                                <a href="{{ route('items.index') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg inline-flex items-center space-x-2 hover:scale-105 transform transition-all">
+                                    <span>Go to Item Management</span>
+                                </a>
                             </div>
                         </div>
 
