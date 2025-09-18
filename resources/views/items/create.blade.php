@@ -14,7 +14,12 @@
             </div>
             <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Size</label>
-                <input type="text" name="size" class="w-full border rounded px-3 py-2" required>
+                <select name="size" class="w-full border rounded px-3 py-2" required>
+                    <option value="">Select size</option>
+                    <option value="S">Small (S)</option>
+                    <option value="M">Medium (M)</option>
+                    <option value="L">Large (L)</option>
+                </select>
             </div>
             <div class="mb-4">
                 <label class="block text-gray-700 mb-2">Amount</label>

@@ -31,25 +31,6 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->amount }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                             <a href="{{ route('items.edit', $item) }}" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded mr-2">Edit</a>
-                                               @if(auth()->user()?->role === 'manager')
-    @if(!$item->is_hidden)
-        @if(Route::has('items.hide'))
-            <form action="{{ route('items.hide', $item) }}" method="POST" style="display:inline;">
-                @csrf
-                @method('PATCH')
-                <button type="submit" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-1 px-3 rounded mr-2">Hide</button>
-            </form>
-        @endif
-    @else
-        @if(Route::has('items.unhide'))
-            <form action="{{ route('items.unhide', $item) }}" method="POST" style="display:inline;">
-                @csrf
-                @method('PATCH')
-                <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-1 px-3 rounded mr-2">Unhide</button>
-            </form>
-        @endif
-    @endif
-@endif
                                             <form action="{{ route('items.destroy', $item) }}" method="POST" style="display:inline;">
                                                 @csrf
                                                 @method('DELETE')

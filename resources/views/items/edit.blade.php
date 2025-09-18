@@ -40,14 +40,12 @@
 
                             <div>
                                 <label for="size" class="block text-sm font-medium text-gray-700">Size</label>
-                                <input
-                                    id="size"
-                                    type="text"
-                                    name="size"
-                                    value="{{ old('size', $item->size) }}"
-                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                    required
-                                >
+                                <select id="size" name="size" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500" required>
+                                    <option value="">Select size</option>
+                                    <option value="S" {{ old('size', $item->size) == 'S' ? 'selected' : '' }}>Small (S)</option>
+                                    <option value="M" {{ old('size', $item->size) == 'M' ? 'selected' : '' }}>Medium (M)</option>
+                                    <option value="L" {{ old('size', $item->size) == 'L' ? 'selected' : '' }}>Large (L)</option>
+                                </select>
                             </div>
 
                             <div>
