@@ -2,7 +2,6 @@
     <x-slot name="header">
         <div class="flex items-center justify-between">
             <div class="flex items-center space-x-3">
-                <div class="text-2xl">🔥</div>
                 <h2 class="font-bold text-2xl text-gray-800 leading-tight">
                     {{ __('Dashboard') }}
                 </h2>

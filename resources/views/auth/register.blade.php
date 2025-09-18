@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Register - RoCorps LPG</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('images/logo.ico') }}">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
