@@ -166,7 +166,6 @@
                 <div class="glass-card admin-card overflow-hidden sm:rounded-2xl">
                     <div class="p-8">
                         <div class="flex items-center space-x-3 mb-6">
-                            <div class="text-3xl">👑</div>
                             <div>
                                 <h3 class="text-xl font-bold text-gray-900">Administrator Panel</h3>
                                 <p class="text-sm text-gray-600">You have full system privileges and can manage all aspects of the platform.</p>
@@ -208,9 +207,6 @@
                                 </div>
                                 <h4 class="font-semibold text-gray-900 mb-2">System Reports</h4>
                                 <p class="text-sm text-gray-600 mb-4">View detailed analytics and system performance metrics.</p>
-                                <button class="bg-purple-500 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg inline-flex items-center space-x-2 hover:scale-105 transform transition-all">
-                                    <span>Reports</span>
-                                </button>
                             </div>
                         </div>
 
