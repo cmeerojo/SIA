@@ -11,8 +11,9 @@ class CustomerController extends Controller
     public function index()
     {
         $customers = Customer::all();
+        $totalCustomers = $customers->count();
 
-        return view('customers.index', compact('customers'));
+        return view('customers.index', compact('customers', 'totalCustomers'));
     }
 
     public function create()
@@ -26,6 +27,7 @@ class CustomerController extends Controller
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:customers,email'],
             'phone' => ['nullable', 'string', 'max:50'],
+            'description' => ['nullable', 'string', 'max:1000'],
         ]);
 
         Customer::create($validated);
@@ -49,6 +51,7 @@ class CustomerController extends Controller
                 Rule::unique('customers', 'email')->ignore($customer->id),
             ],
             'phone' => ['nullable', 'string', 'max:50'],
+            'description' => ['nullable', 'string', 'max:1000'],
         ]);
 
         $customer->update($validated);

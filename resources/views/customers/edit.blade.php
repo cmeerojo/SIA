@@ -1,18 +1,24 @@
 <x-app-layout>
     <x-slot name="header">
-        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Edit Customer @isset($customer->id)#{{ $customer->id }}@endisset
-        </h2>
+        <div class="flex flex-col gap-1">
+            <h2 class="font-bold text-2xl text-gray-800 leading-tight tracking-tight">Edit Customer @isset($customer->id)#{{ $customer->id }}@endisset</h2>
+            <span class="text-gray-500 text-base font-normal">Update customer information and maintain accurate records.</span>
+        </div>
     </x-slot>
 
-    <div class="py-12">
+    <div class="py-12 bg-gradient-to-br from-orange-50 to-red-50 min-h-screen">
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
-                <div class="p-6 text-gray-900">
+            <div class="bg-white border border-gray-200 shadow-lg sm:rounded-2xl overflow-hidden">
+                <div class="p-8 text-gray-900">
                     @if ($errors->any())
-                        <div class="mb-6 rounded border border-red-200 bg-red-50 p-4 text-red-700">
-                            <div class="font-semibold mb-2">Please fix the following:</div>
-                            <ul class="list-disc list-inside space-y-1">
+                        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700 shadow-sm">
+                            <div class="font-semibold mb-2 flex items-center gap-2">
+                                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                </svg>
+                                Please fix the following errors:
+                            </div>
+                            <ul class="list-disc list-inside space-y-1 text-sm">
                                 @foreach ($errors->all() as $error)
                                     <li>{{ $error }}</li>
                                 @endforeach
@@ -26,36 +32,47 @@
 
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div class="sm:col-span-2">
-                                <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+                                <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Customer Name *</label>
                                 <input id="name" type="text" name="name"
                                        value="{{ old('name', $customer->name) }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                       required>
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                                       placeholder="Enter customer's full name" required>
                             </div>
 
                             <div>
-                                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                                <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
                                 <input id="email" type="email" name="email"
                                        value="{{ old('email', $customer->email) }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                       required>
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                                       placeholder="customer@example.com" required>
                             </div>
 
                             <div>
-                                <label for="phone" class="block text-sm font-medium text-gray-700">Phone</label>
+                                <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
                                 <input id="phone" type="text" name="phone"
                                        value="{{ old('phone', $customer->phone) }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                                       placeholder="+1 (555) 123-4567">
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-end space-x-3">
+                        <div class="sm:col-span-2">
+                            <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">Description & Notes</label>
+                            <textarea id="description" name="description" rows="4"
+                                      class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition resize-none"
+                                      placeholder="Enter customer description, preferences, or any relevant notes...">{{ old('description', $customer->description) }}</textarea>
+                        </div>
+
+                        <div class="flex items-center justify-end space-x-3 pt-6 border-t border-gray-200">
                             <a href="{{ route('customers.index') }}"
-                               class="inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
+                               class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-6 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 shadow transition">
                                 Cancel
                             </a>
                             <button type="submit"
-                                    class="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                                    class="inline-flex items-center rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path>
+                                </svg>
                                 Update Customer
                             </button>
                         </div>
@@ -63,9 +80,9 @@
                 </div>
             </div>
 
-            <div class="mt-4 text-right">
-                <a href="{{ route('customers.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
-                    ← Back to Customers
+            <div class="mt-6 text-center">
+                <a href="{{ route('customers.index') }}" class="text-sm text-gray-600 hover:text-gray-900 font-medium">
+                    ← Back to Customer Directory
                 </a>
             </div>
         </div>

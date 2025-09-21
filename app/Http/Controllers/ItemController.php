@@ -9,7 +9,10 @@ class ItemController extends Controller
     public function index()
     {
         $items = Item::all();
-        return view('items.index', compact('items'));
+        $totalItems = $items->count();
+        $mostRecentItem = Item::orderBy('created_at', 'desc')->first();
+        $itemsWithDates = Item::orderBy('created_at', 'desc')->get();
+        return view('items.index', compact('items', 'totalItems', 'mostRecentItem', 'itemsWithDates'));
     }
 
     public function create()
