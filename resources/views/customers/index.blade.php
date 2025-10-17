@@ -55,18 +55,17 @@
                         <table class="min-w-full divide-y divide-gray-200 bg-white rounded-xl shadow">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">ID</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Name</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Email</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Phone</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Description</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Dropoff</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-100">
                                 @forelse($customers as $customer)
                                     <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ $customer->id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ $customer->name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $customer->email }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $customer->phone ?? 'N/A' }}</td>
@@ -79,11 +78,15 @@
                                                 <span class="text-gray-400 italic">No description</span>
                                             @endif
                                         </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $customer->dropoff_location ?? '—' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
                                             <a href="{{ route('customers.edit', $customer) }}"
                                                class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded shadow transition">
                                                 Edit
                                             </a>
+                                            @if(auth()->user() && auth()->user()->role === 'manager')
+                                                <button onclick="openDropoffModal({{ $customer->id }}, '{{ addslashes($customer->dropoff_location ?? '') }}')" class="bg-green-500 hover:bg-green-600 text-white font-bold py-1 px-3 rounded shadow transition">Set Dropoff</button>
+                                            @endif
                                             <form action="{{ route('customers.destroy', $customer) }}" method="POST" style="display:inline;">
                                                 @csrf
                                                 @method('DELETE')
@@ -117,3 +120,36 @@
         </div>
     </div>
 </x-app-layout>
+
+<!-- Dropoff Modal -->
+<div id="dropoff-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full border border-gray-200">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold">Set Dropoff Location</h3>
+            <button onclick="document.getElementById('dropoff-modal').classList.add('hidden')" class="text-2xl text-gray-400">&times;</button>
+        </div>
+        <form id="dropoff-form" method="POST" action="">
+            @csrf
+            @method('PATCH')
+            <div class="mb-3">
+                <label class="text-sm font-medium">Dropoff Location</label>
+                <input type="text" name="dropoff_location" id="dropoff_location_input" class="w-full mt-1 border rounded px-3 py-2" placeholder="Enter address, landmark, or instructions">
+            </div>
+            <div class="flex justify-end gap-2">
+                <button type="button" onclick="document.getElementById('dropoff-modal').classList.add('hidden')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded">Cancel</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openDropoffModal(customerId, existing) {
+        const modal = document.getElementById('dropoff-modal');
+        const input = document.getElementById('dropoff_location_input');
+        const form = document.getElementById('dropoff-form');
+        input.value = existing || '';
+        form.action = `/customers/${customerId}/dropoff`;
+        modal.classList.remove('hidden');
+    }
+</script>

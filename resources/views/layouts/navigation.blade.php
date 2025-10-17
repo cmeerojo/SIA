@@ -19,6 +19,9 @@
                     <x-nav-link :href="route('items.index')" :active="request()->routeIs('items.index')">
                         {{ __('Item Management') }}
                     </x-nav-link>
+                        <x-nav-link :href="route('deliveries.index')" :active="request()->routeIs('deliveries*')">
+                            {{ __('Deliveries') }}
+                        </x-nav-link>
                     @endif
                     
                     @if(auth()->user()?->role === 'manager')
@@ -85,8 +88,11 @@
             <x-responsive-nav-link :href="route('items.index')" :active="request()->routeIs('items.index')">
                 {{ __('Item Management') }}
             </x-responsive-nav-link>
+            <x-responsive-nav-link :href="route('deliveries.index')" :active="request()->routeIs('deliveries*')">
+                {{ __('Deliveries') }}
+            </x-responsive-nav-link>
 
-            <x-responsive-nav-link href="route('customers.index')" :active="request()->routeIs('customers.index')">
+            <x-responsive-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.index')">
                 {{ __('Customers') }}
             </x-responsive-nav-link>
             @endif

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerController extends Controller
 {
@@ -64,5 +65,24 @@ class CustomerController extends Controller
         $customer->delete();
 
         return redirect()->route('customers.index')->with('success', 'Customer deleted!');
+    }
+
+    public function updateDropoff(Request $request, Customer $customer)
+    {
+        $this->authorizeManager();
+
+        $validated = $request->validate([
+            'dropoff_location' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $customer->update($validated);
+
+        return back()->with('success', 'Dropoff location updated.');
+    }
+
+    private function authorizeManager(): void
+    {
+        $user = Auth::user();
+        abort_unless($user && $user->role === 'manager', 403, 'Forbidden');
     }
 }

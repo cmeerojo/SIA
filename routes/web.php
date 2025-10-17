@@ -7,11 +7,20 @@ use App\Http\Controllers\CustomerController;
 use Illuminate\Support\Facades\Route;
 
 Route::resource('customers', CustomerController::class);
+Route::patch('/customers/{customer}/dropoff', [CustomerController::class, 'updateDropoff'])->middleware('auth')->name('customers.dropoff.update');
 
 Route::resource('items', ItemController::class);
 
     Route::patch('/items/{item}/hide', [ItemController::class, 'hide'])->middleware('auth') ->name('items.hide');
     Route::patch('/items/{item}/unhide', [ItemController::class, 'unhide'])->middleware('auth') ->name('items.unhide');
+    // stock movements
+    Route::post('/items/movements', [ItemController::class, 'storeMovement'])->middleware('auth')->name('items.movements.store');
+
+// deliveries
+Route::get('/deliveries', [\App\Http\Controllers\DeliveryController::class, 'index'])->middleware('auth')->name('deliveries.index');
+Route::post('/deliveries/drivers', [\App\Http\Controllers\DeliveryController::class, 'storeDriver'])->middleware('auth')->name('deliveries.drivers.store');
+Route::post('/deliveries', [\App\Http\Controllers\DeliveryController::class, 'storeDelivery'])->middleware('auth')->name('deliveries.store');
+Route::patch('/deliveries/{delivery}/status', [\App\Http\Controllers\DeliveryController::class, 'updateStatus'])->middleware('auth')->name('deliveries.status.update');
 
 Route::get('/', function () {
     return view('home');

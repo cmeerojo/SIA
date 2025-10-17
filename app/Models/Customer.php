@@ -14,5 +14,6 @@ class Customer extends Model
         'email',
         'phone',
         'description',
+        'dropoff_location',
     ];
 }

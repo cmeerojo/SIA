@@ -75,15 +75,18 @@
                         </div>
                     </div>
                     <div class="mb-6 flex justify-between items-center">
-                        <a href="{{ route('items.create') }}" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow transition">Add Item</a>
+                        <div class="flex items-center gap-3">
+                            <button onclick="document.getElementById('add-item-modal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow transition">Add Item</button>
+                            <button onclick="document.getElementById('stock-movements-modal').classList.remove('hidden')" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow transition">Stock Movements</button>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200 bg-white rounded-xl shadow">
                             <thead class="bg-gray-100">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">ID</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Brand</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Size</th>
+                                    <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Valve Type</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Amount</th>
                                     <th class="px-6 py-3 text-left text-xs font-bold text-gray-600 uppercase tracking-wider">Actions</th>
                                 </tr>
@@ -91,9 +94,9 @@
                             <tbody class="bg-white divide-y divide-gray-100">
                                 @foreach($items as $item)
                                     <tr>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->id }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->brand }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->size }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $item->valve_type ? ($item->valve_type === 'POL' ? 'POL valve' : ($item->valve_type === 'A/S' ? 'A/S valve' : $item->valve_type)) : '—' }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->amount }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
                                             <a href="{{ route('items.edit', $item) }}" class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded shadow">Edit</a>
@@ -108,8 +111,132 @@
                             </tbody>
                         </table>
                     </div>
+                    <!-- Stock Movements Modal -->
+                    <div id="stock-movements-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-start justify-center z-50 pt-16 overflow-auto">
+                        <div class="bg-white rounded-xl shadow-2xl p-0 max-w-4xl w-full relative border border-gray-200">
+                            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100 rounded-t-xl bg-gray-50">
+                                <h3 class="text-xl font-bold text-gray-800">Stock Movements</h3>
+                                <button onclick="document.getElementById('stock-movements-modal').classList.add('hidden')" class="text-2xl text-gray-400 hover:text-gray-700 font-bold focus:outline-none">&times;</button>
+                            </div>
+                            <div class="px-6 py-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="overflow-x-auto max-h-96">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead class="bg-gray-100">
+                                            <tr>
+                                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Time</th>
+                                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Product</th>
+                                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Type</th>
+                                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Reason</th>
+                                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">Qty</th>
+                                                <th class="px-4 py-2 text-left text-xs font-semibold text-gray-600 uppercase">By</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-100">
+                                            @foreach($movements as $m)
+                                            <tr>
+                                                <td class="px-4 py-2 text-sm text-gray-700">{{ $m->created_at->diffForHumans() }}</td>
+                                                <td class="px-4 py-2 text-sm text-gray-900">{{ $m->item->brand }} ({{ $m->item->size }})</td>
+                                                <td class="px-4 py-2 text-sm text-gray-900">{{ ucfirst($m->type) }}</td>
+                                                <td class="px-4 py-2 text-sm text-gray-700">{{ $m->reason }}</td>
+                                                <td class="px-4 py-2 text-sm text-gray-900">{{ $m->quantity }}</td>
+                                                <td class="px-4 py-2 text-sm text-gray-700">{{ optional($m->user)->name ?? 'System' }}</td>
+                                            </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <div class="p-4 bg-gray-50 rounded-lg">
+                                    <h4 class="font-bold mb-2">Record a Movement</h4>
+                                    <form action="{{ route('items.movements.store') }}" method="POST">
+                                        @csrf
+                                        <div class="mb-3">
+                                            <label class="text-sm font-medium">Product</label>
+                                            <select name="item_id" class="w-full mt-1 border rounded px-3 py-2">
+                                                @foreach($items as $it)
+                                                    <option value="{{ $it->id }}">{{ $it->brand }} ({{ $it->size }}) — current: {{ $it->amount }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="mb-3 grid grid-cols-2 gap-3">
+                                            <div>
+                                                <label class="text-sm font-medium">Type</label>
+                                                <select name="type" class="w-full mt-1 border rounded px-3 py-2">
+                                                    <option value="add">Add</option>
+                                                    <option value="reduce">Reduce</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label class="text-sm font-medium">Reason</label>
+                                                <select name="reason" class="w-full mt-1 border rounded px-3 py-2">
+                                                    <option value="restock">Restock</option>
+                                                    <option value="sales">Sales</option>
+                                                    <option value="adjustment">Adjustment</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="text-sm font-medium">Quantity</label>
+                                            <input type="number" name="quantity" min="1" class="w-full mt-1 border rounded px-3 py-2" required>
+                                        </div>
+                                        <div class="flex justify-end gap-2">
+                                            <button type="button" onclick="document.getElementById('stock-movements-modal').classList.add('hidden')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded">Cancel</button>
+                                            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded">Save Movement</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            <div class="px-6 py-3 border-t border-gray-100 bg-gray-50 rounded-b-xl flex justify-end">
+                                <button onclick="document.getElementById('stock-movements-modal').classList.add('hidden')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-6 rounded shadow">Close</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </x-app-layout>
+
+<!-- Add Item Modal -->
+<div id="add-item-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+    <div class="bg-white rounded-xl shadow-2xl p-6 max-w-lg w-full border border-gray-200">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold">Add Item</h3>
+            <button onclick="document.getElementById('add-item-modal').classList.add('hidden')" class="text-2xl text-gray-400">&times;</button>
+        </div>
+        <form action="{{ route('items.store') }}" method="POST">
+            @csrf
+            <div class="grid grid-cols-1 gap-3">
+                <div>
+                    <label class="text-sm font-medium">Brand</label>
+                    <input type="text" name="brand" class="w-full mt-1 border rounded px-3 py-2" required>
+                </div>
+                <div>
+                    <label class="text-sm font-medium">Size</label>
+                    <select name="size" class="w-full mt-1 border rounded px-3 py-2" required>
+                        <option value="">Select size</option>
+                        <option value="S">Small (S)</option>
+                        <option value="M">Medium (M)</option>
+                        <option value="L">Large (L)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-sm font-medium">Amount</label>
+                    <input type="number" name="amount" min="0" class="w-full mt-1 border rounded px-3 py-2" required>
+                </div>
+                <div>
+                    <label class="text-sm font-medium">Valve Type</label>
+                    <select name="valve_type" class="w-full mt-1 border rounded px-3 py-2">
+                        <option value="">Select valve type</option>
+                        <option value="POL">POL valve</option>
+                        <option value="A/S">A/S valve</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-4">
+                <button type="button" onclick="document.getElementById('add-item-modal').classList.add('hidden')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded">Cancel</button>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">Add Item</button>
+            </div>
+        </form>
+    </div>
+</div>

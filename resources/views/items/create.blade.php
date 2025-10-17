@@ -25,6 +25,14 @@
                 <label class="block text-gray-700 mb-2">Amount</label>
                 <input type="number" name="amount" class="w-full border rounded px-3 py-2" required>
             </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 mb-2">Valve Type</label>
+                <select name="valve_type" class="w-full border rounded px-3 py-2">
+                    <option value="">Select valve type</option>
+                    <option value="POL">POL valve</option>
+                    <option value="A/S">A/S valve</option>
+                </select>
+            </div>
             <div>
                 <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Add Item</button>
                 <a href="{{ route('items.index') }}" class="ml-2 text-gray-600">Cancel</a>

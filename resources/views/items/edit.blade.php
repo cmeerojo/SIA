@@ -60,6 +60,15 @@
                                     required
                                 >
                             </div>
+
+                            <div>
+                                <label for="valve_type" class="block text-sm font-medium text-gray-700">Valve Type</label>
+                                <select id="valve_type" name="valve_type" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                    <option value="">-- Select --</option>
+                                    <option value="POL" {{ old('valve_type', $item->valve_type) == 'POL' ? 'selected' : '' }}>POL valve</option>
+                                    <option value="A/S" {{ old('valve_type', $item->valve_type) == 'A/S' ? 'selected' : '' }}>A/S valve</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div class="flex items-center justify-end space-x-3">
