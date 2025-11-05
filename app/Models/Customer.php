@@ -13,7 +13,10 @@ class Customer extends Model
         'name',
         'email',
         'phone',
+        'address',
+        'contact_number',
         'description',
         'dropoff_location',
+        'reorder_point',
     ];
 }

@@ -14,6 +14,8 @@ class Driver extends Model
         'last_name',
         'contact_info',
         'license',
+        'name',
+        'contact_number',
     ];
 
     public function deliveries()

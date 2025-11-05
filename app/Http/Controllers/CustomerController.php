@@ -28,6 +28,9 @@ class CustomerController extends Controller
             'name'  => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:customers,email'],
             'phone' => ['nullable', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'contact_number' => ['nullable', 'string', 'max:100'],
+            'reorder_point' => ['nullable', 'integer', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
 
@@ -52,6 +55,9 @@ class CustomerController extends Controller
                 Rule::unique('customers', 'email')->ignore($customer->id),
             ],
             'phone' => ['nullable', 'string', 'max:50'],
+            'address' => ['nullable', 'string', 'max:1000'],
+            'contact_number' => ['nullable', 'string', 'max:100'],
+            'reorder_point' => ['nullable', 'integer', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
 

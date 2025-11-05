@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Item;
 use App\Models\StockMovement;
+use App\Models\Tank;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,8 +17,15 @@ class ItemController extends Controller
         $itemsWithDates = Item::orderBy('created_at', 'desc')->get();
         // recent stock movements to show in modal
         $movements = StockMovement::with('item', 'user')->orderBy('created_at', 'desc')->limit(50)->get();
+        // tanks quick access for item management
+        $recentTanks = Tank::orderBy('created_at', 'desc')->limit(8)->get();
+        $tanksInStore = Tank::where('status', 'filled')->count();
+        $tanksWithCustomers = Tank::where('status', 'with_customer')->count();
 
-        return view('items.index', compact('items', 'totalItems', 'mostRecentItem', 'itemsWithDates', 'movements'));
+        return view('items.index', compact(
+            'items', 'totalItems', 'mostRecentItem', 'itemsWithDates', 'movements',
+            'recentTanks', 'tanksInStore', 'tanksWithCustomers'
+        ));
     }
 
     public function create()
