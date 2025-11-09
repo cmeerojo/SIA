@@ -48,6 +48,13 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::resource('users', UserManagementController::class);
     Route::patch('/users/{user}/block', [UserManagementController::class, 'block'])->name('users.block');
+
+    // Sales management
+    Route::get('/sales/overview', [\App\Http\Controllers\SalesController::class, 'overview'])->name('sales.overview');
+    Route::get('/sales/manage', [\App\Http\Controllers\SalesController::class, 'manage'])->name('sales.manage');
+    Route::post('/sales', [\App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
+    Route::get('/sales/{sale}', [\App\Http\Controllers\SalesController::class, 'show'])->name('sales.show');
+    Route::patch('/sales/{sale}', [\App\Http\Controllers\SalesController::class, 'update'])->name('sales.update');
 });
 
 require __DIR__.'/auth.php';

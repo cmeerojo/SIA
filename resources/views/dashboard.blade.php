@@ -116,6 +116,20 @@
                 </div>
             </div>
 
+            <!-- Sales Quick Card -->
+            <div class="glass-card rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Sales</p>
+                        <p class="text-xl font-bold text-gray-900">Manage and review sales</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <a href="{{ route('sales.overview') }}" class="btn-lpg text-white font-medium py-2 px-4 rounded-lg inline-flex items-center">Overview</a>
+                        <a href="{{ route('sales.manage') }}" class="bg-green-500 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg inline-flex items-center">Manage</a>
+                    </div>
+                </div>
+            </div>
+
             <!-- Stats Cards -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="stat-card glass-card rounded-xl p-6">
