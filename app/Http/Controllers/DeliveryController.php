@@ -123,6 +123,49 @@ class DeliveryController extends Controller
         return back()->with('success', 'Delivery status updated.');
     }
 
+    /**
+     * Show delivery map view
+     */
+    public function showMap(Delivery $delivery)
+    {
+        $delivery->load('customer', 'driver', 'item');
+        
+        // Return JSON for AJAX or view for direct access
+        if (request()->wantsJson()) {
+            return response()->json([
+                'id' => $delivery->id,
+                'customer' => $delivery->customer,
+                'driver' => $delivery->driver,
+                'item' => $delivery->item,
+                'quantity' => $delivery->quantity,
+                'status' => $delivery->status,
+                'dropoff_location' => $delivery->dropoff_location,
+                'created_at' => $delivery->created_at,
+            ]);
+        }
+        
+        return view('deliveries.map', compact('delivery'));
+    }
+
+    /**
+     * Update delivery location during delivery
+     */
+    public function updateLocation(Request $request, Delivery $delivery)
+    {
+        $validated = $request->validate([
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+
+        // Store current driver location (in production, you might want to track this separately)
+        $delivery->update([
+            'driver_latitude' => $validated['latitude'],
+            'driver_longitude' => $validated['longitude'],
+        ]);
+
+        return response()->json(['success' => true]);
+    }
+
     private function authorizeManager(): void
     {
         $user = Auth::user();

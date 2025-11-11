@@ -16,6 +16,9 @@ class TankDelivery extends Model
         'customer_id',
         'driver_id',
         'date_delivered',
+        'driver_latitude',
+        'driver_longitude',
+        'driver_location_updated_at',
     ];
 
     protected $dates = ['date_delivered'];

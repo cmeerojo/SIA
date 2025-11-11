@@ -19,6 +19,8 @@ Route::resource('tanks', \App\Http\Controllers\TankController::class)->middlewar
 // Tank deliveries / dispatch
 Route::get('/tank-deliveries', [\App\Http\Controllers\TankDeliveryController::class, 'index'])->middleware('auth')->name('tank.deliveries.index');
 Route::post('/tank-deliveries', [\App\Http\Controllers\TankDeliveryController::class, 'store'])->middleware('auth')->name('tank.deliveries.store');
+Route::get('/tank-deliveries/{tank_delivery}/map', [\App\Http\Controllers\TankDeliveryController::class, 'showMap'])->middleware('auth')->name('tank.deliveries.map');
+Route::patch('/tank-deliveries/{tank_delivery}/location', [\App\Http\Controllers\TankDeliveryController::class, 'updateLocation'])->middleware('auth')->name('tank.deliveries.location.update');
 
 // Drivers CRUD
 Route::resource('drivers', \App\Http\Controllers\DriverController::class)->middleware('auth');
@@ -33,6 +35,8 @@ Route::get('/deliveries', [\App\Http\Controllers\DeliveryController::class, 'ind
 Route::post('/deliveries/drivers', [\App\Http\Controllers\DeliveryController::class, 'storeDriver'])->middleware('auth')->name('deliveries.drivers.store');
 Route::post('/deliveries', [\App\Http\Controllers\DeliveryController::class, 'storeDelivery'])->middleware('auth')->name('deliveries.store');
 Route::patch('/deliveries/{delivery}/status', [\App\Http\Controllers\DeliveryController::class, 'updateStatus'])->middleware('auth')->name('deliveries.status.update');
+Route::get('/deliveries/{delivery}/map', [\App\Http\Controllers\DeliveryController::class, 'showMap'])->middleware('auth')->name('deliveries.map');
+Route::patch('/deliveries/{delivery}/location', [\App\Http\Controllers\DeliveryController::class, 'updateLocation'])->middleware('auth')->name('deliveries.location.update');
 
 Route::get('/', function () {
     return view('home');

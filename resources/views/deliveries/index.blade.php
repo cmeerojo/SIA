@@ -56,7 +56,10 @@
                                             <div class="text-sm text-gray-500">Quantity: {{ $del->quantity }} • Scheduled: {{ $del->created_at->format('M d, Y H:i') }}</div>
                                         </div>
                                         <div class="flex flex-col items-end gap-2">
-                                            <div class="text-sm">
+                                            <div class="flex gap-2">
+                                                <a href="{{ route('deliveries.map', $del) }}" class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1 rounded">
+                                                    View Map
+                                                </a>
                                                 <form action="{{ route('deliveries.status.update', $del) }}" method="POST" class="inline-flex items-center gap-3">
                                                     @csrf
                                                     @method('PATCH')

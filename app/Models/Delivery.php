@@ -16,6 +16,9 @@ class Delivery extends Model
         'item_id',
         'quantity',
         'status',
+        'driver_latitude',
+        'driver_longitude',
+        'driver_location_updated_at',
     ];
 
     public function customer()

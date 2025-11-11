@@ -57,4 +57,45 @@ class TankDeliveryController extends Controller
 
         return redirect()->route('tank.deliveries.index')->with('success', 'Tank delivery recorded');
     }
+
+    /**
+     * Show tank delivery map view
+     */
+    public function showMap(TankDelivery $delivery)
+    {
+        $delivery->load('tank', 'customer', 'driver');
+        
+        // Return JSON for AJAX or view for direct access
+        if (request()->wantsJson()) {
+            return response()->json([
+                'id' => $delivery->id,
+                'tank' => $delivery->tank,
+                'customer' => $delivery->customer,
+                'driver' => $delivery->driver,
+                'date_delivered' => $delivery->date_delivered,
+                'created_at' => $delivery->created_at,
+            ]);
+        }
+        
+        return view('tank_deliveries.map', compact('delivery'));
+    }
+
+    /**
+     * Update delivery location during delivery
+     */
+    public function updateLocation(Request $request, TankDelivery $delivery)
+    {
+        $validated = $request->validate([
+            'latitude' => 'required|numeric|between:-90,90',
+            'longitude' => 'required|numeric|between:-180,180',
+        ]);
+
+        // Store current driver location
+        $delivery->update([
+            'driver_latitude' => $validated['latitude'],
+            'driver_longitude' => $validated['longitude'],
+        ]);
+
+        return response()->json(['success' => true]);
+    }
 }
