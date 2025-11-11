@@ -44,6 +44,65 @@ class SalesController extends Controller
             ];
         });
 
+        // Monthly aggregates for last 12 months (including current month)
+        $startOfWindow = Carbon::now()->startOfMonth()->subMonths(11);
+        $rawMonthly = Sale::selectRaw("
+                DATE_FORMAT(created_at, '%Y-%m') as ym,
+                DATE_FORMAT(created_at, '%b %Y') as label,
+                SUM(price) as total,
+                SUM(CASE WHEN status = 'completed' THEN price ELSE 0 END) as completed,
+                SUM(CASE WHEN status = 'pending' THEN price ELSE 0 END) as pending,
+                COUNT(*) as count
+            ")
+            ->where('created_at', '>=', $startOfWindow)
+            ->groupBy('ym', 'label')
+            ->orderBy('ym')
+            ->get();
+
+        // Ensure we have all months in window, even with zero values
+        $monthsRange = collect(range(0, 11))->map(function ($i) use ($startOfWindow) {
+            $d = (clone $startOfWindow)->addMonths($i);
+            return [
+                'ym' => $d->format('Y-m'),
+                'label' => $d->format('M Y'),
+            ];
+        });
+        $monthlyByYm = $rawMonthly->keyBy('ym');
+        $last12Months = $monthsRange->map(function ($m) use ($monthlyByYm) {
+            $row = $monthlyByYm->get($m['ym']);
+            return [
+                'ym' => $m['ym'],
+                'label' => $m['label'],
+                'total' => $row?->total ? (float)$row->total : 0,
+                'completed' => $row?->completed ? (float)$row->completed : 0,
+                'pending' => $row?->pending ? (float)$row->pending : 0,
+                'count' => $row?->count ? (int)$row->count : 0,
+            ];
+        });
+
+        // Sales breakdown by payment method (last 30 days)
+        $paymentWindow = Carbon::now()->subDays(30);
+        $paymentsRaw = Sale::selectRaw("payment_method, SUM(price) as total, COUNT(*) as count")
+            ->where('created_at', '>=', $paymentWindow)
+            ->groupBy('payment_method')
+            ->get();
+        $salesByPaymentMethod = $paymentsRaw->map(function ($row) {
+            return [
+                'method' => $row->payment_method ?? 'unknown',
+                'total' => (float)$row->total,
+                'count' => (int)$row->count,
+            ];
+        });
+
+        // Top customers by amount in last 30 days
+        $topCustomers = Sale::selectRaw("customer_id, SUM(price) as total, COUNT(*) as count")
+            ->where('created_at', '>=', $paymentWindow)
+            ->groupBy('customer_id')
+            ->orderByDesc('total')
+            ->with('customer')
+            ->limit(10)
+            ->get();
+
         return view('sales.overview', compact(
             'completedAmountToday', 
             'pendingAmountToday', 
@@ -52,6 +111,9 @@ class SalesController extends Controller
             'pendingOrders', 
             'completedOrders',
             'last7Days',
+            'last12Months',
+            'salesByPaymentMethod',
+            'topCustomers',
             'customers',
             'tanks'
         ));

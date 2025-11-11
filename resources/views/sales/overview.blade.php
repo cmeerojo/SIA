@@ -108,6 +108,84 @@
                     <canvas id="ordersChart" class="w-full" height="300"></canvas>
                 </div>
             </div>
+
+            <!-- Monthly Sales and Breakdown -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
+                <div class="bg-white p-6 rounded-lg shadow md:col-span-2">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium">Sales by Month (Last 12 Months)</h3>
+                    </div>
+                    <canvas id="monthlySalesChart" class="w-full" height="300"></canvas>
+                </div>
+
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium">Payment Methods (Last 30 Days)</h3>
+                    </div>
+                    <canvas id="paymentMethodChart" class="w-full" height="300"></canvas>
+                </div>
+            </div>
+
+            <!-- Tables -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+                <!-- Monthly Totals Table -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium mb-4">Monthly Totals</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead>
+                                <tr class="text-left text-gray-600 border-b">
+                                    <th class="py-2 pr-4">Month</th>
+                                    <th class="py-2 pr-4 text-right">Completed</th>
+                                    <th class="py-2 pr-4 text-right">Pending</th>
+                                    <th class="py-2 pr-4 text-right">Total</th>
+                                    <th class="py-2 pr-4 text-right">Orders</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($last12Months as $m)
+                                <tr class="border-b last:border-0">
+                                    <td class="py-2 pr-4">{{ $m['label'] }}</td>
+                                    <td class="py-2 pr-4 text-right text-green-700">₱{{ number_format($m['completed'], 2) }}</td>
+                                    <td class="py-2 pr-4 text-right text-yellow-700">₱{{ number_format($m['pending'], 2) }}</td>
+                                    <td class="py-2 pr-4 text-right font-semibold">₱{{ number_format($m['total'], 2) }}</td>
+                                    <td class="py-2 pr-4 text-right">{{ $m['count'] }}</td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Top Customers Table -->
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-medium mb-4">Top Customers (Last 30 Days)</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead>
+                                <tr class="text-left text-gray-600 border-b">
+                                    <th class="py-2 pr-4">Customer</th>
+                                    <th class="py-2 pr-4 text-right">Orders</th>
+                                    <th class="py-2 pr-4 text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($topCustomers as $row)
+                                <tr class="border-b last:border-0">
+                                    <td class="py-2 pr-4">{{ $row->customer?->name ?? 'Unknown' }}</td>
+                                    <td class="py-2 pr-4 text-right">{{ $row->count }}</td>
+                                    <td class="py-2 pr-4 text-right font-semibold">₱{{ number_format($row->total, 2) }}</td>
+                                </tr>
+                                @empty
+                                <tr>
+                                    <td colspan="3" class="py-4 text-gray-500">No sales in the last 30 days.</td>
+                                </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -177,6 +255,76 @@
                         beginAtZero: true,
                         ticks: {
                             stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+
+        // Monthly sales (last 12 months)
+        const monthlyData = @json($last12Months);
+        new Chart(document.getElementById('monthlySalesChart'), {
+            type: 'bar',
+            data: {
+                labels: monthlyData.map(m => m.label),
+                datasets: [
+                    {
+                        label: 'Completed',
+                        data: monthlyData.map(m => m.completed),
+                        backgroundColor: '#16a34a',
+                        stack: 'amount',
+                    },
+                    {
+                        label: 'Pending',
+                        data: monthlyData.map(m => m.pending),
+                        backgroundColor: '#ca8a04',
+                        stack: 'amount',
+                    },
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true },
+                    y: { 
+                        stacked: true,
+                        ticks: {
+                            callback: (value) => '₱' + value.toLocaleString()
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                return context.dataset.label + ': ₱' + context.raw.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Payment method breakdown (last 30 days) - doughnut
+        const paymentData = @json($salesByPaymentMethod);
+        new Chart(document.getElementById('paymentMethodChart'), {
+            type: 'doughnut',
+            data: {
+                labels: paymentData.map(p => p.method.toUpperCase()),
+                datasets: [{
+                    data: paymentData.map(p => p.total),
+                    backgroundColor: ['#ef4444', '#22c55e', '#3b82f6', '#a855f7', '#f59e0b']
+                }]
+            },
+            options: {
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const total = context.raw || 0;
+                                const method = context.label || '';
+                                return `${method}: ₱${Number(total).toLocaleString()}`;
+                            }
                         }
                     }
                 }

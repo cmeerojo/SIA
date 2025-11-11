@@ -136,7 +136,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600">Active Users</p>
-                            <p class="text-2xl font-bold text-gray-900">456</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $activeUsersCount ?? 0 }}</p>
                         </div>
                         <div class="text-3xl text-blue-500">👥</div>
                     </div>
@@ -150,7 +150,7 @@
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-gray-600">LPG Delivered</p>
-                            <p class="text-2xl font-bold text-gray-900">89</p>
+                            <p class="text-2xl font-bold text-gray-900">{{ $lpgDeliveredToday ?? 0 }}</p>
                         </div>
                         <div class="text-3xl text-red-500">🚚</div>
                     </div>

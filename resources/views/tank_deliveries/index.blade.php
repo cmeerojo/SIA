@@ -64,7 +64,7 @@
                                         <div class="text-sm font-medium">{{ $d->date_delivered ? $d->date_delivered->format('Y-m-d') : $d->created_at->format('Y-m-d') }} — Tank: {{ $d->tank?->serial_code ?? 'N/A' }} → Customer: {{ $d->customer?->name ?? 'N/A' }}</div>
                                         <div class="text-xs text-gray-500 mt-1">Driver: {{ $d->driver?->first_name ?? '—' }} {{ $d->driver?->last_name ?? '' }}</div>
                                     </div>
-                                    <a href="{{ route('tank.deliveries.map', $d) }}" class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1 rounded whitespace-nowrap ml-3">
+                                    <a href="{{ route('tank.deliveries.map', ['tank_delivery' => $d->getRouteKey()]) }}" class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1 rounded whitespace-nowrap ml-3">
                                         View Map
                                     </a>
                                 </div>

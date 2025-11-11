@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="font-bold text-2xl text-gray-800">Tank Delivery Map</h2>
-                <p class="text-gray-600 text-sm mt-1">Tank: {{ $delivery->tank?->serial_code ?? 'N/A' }} → {{ $delivery->customer->name ?? 'N/A' }}</p>
+                <p class="text-gray-600 text-sm mt-1">Tank: {{ $delivery->tank?->serial_code ?? 'N/A' }} → {{ $delivery->customer?->name ?? 'N/A' }}</p>
             </div>
             <a href="{{ route('tank.deliveries.index') }}" class="text-blue-600 hover:text-blue-800 font-medium">← Back to Deliveries</a>
         </div>
@@ -24,73 +24,64 @@
                     <!-- Tank Details -->
                     <div class="bg-white rounded-lg shadow p-6">
                         <h3 class="font-bold text-lg mb-4">Tank Details</h3>
-                        @if($delivery->tank)
                         <div class="space-y-2 text-sm">
                             <div>
                                 <span class="text-gray-600">Serial Code:</span>
-                                <p class="font-medium">{{ $delivery->tank->serial_code }}</p>
+                                <p class="font-medium">{{ $delivery->tank?->serial_code ?? 'N/A' }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">Brand:</span>
-                                <p class="font-medium">{{ $delivery->tank->brand ?? 'N/A' }}</p>
+                                <p class="font-medium">{{ $delivery->tank?->brand ?? 'N/A' }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">Size:</span>
-                                <p class="font-medium">{{ $delivery->tank->size ?? 'N/A' }}</p>
+                                <p class="font-medium">{{ $delivery->tank?->size ?? 'N/A' }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">Status:</span>
-                                <p class="font-medium">{{ ucfirst($delivery->tank->status) }}</p>
+                                <p class="font-medium">{{ $delivery->tank?->status ? ucfirst($delivery->tank->status) : 'N/A' }}</p>
                             </div>
                         </div>
-                        @else
-                        <p class="text-gray-500 text-sm">Tank information not available</p>
-                        @endif
                     </div>
 
                     <!-- Customer Details -->
                     <div class="bg-white rounded-lg shadow p-6">
                         <h3 class="font-bold text-lg mb-4">Customer Details</h3>
-                        @if($delivery->customer)
                         <div class="space-y-2 text-sm">
                             <div>
                                 <span class="text-gray-600">Name:</span>
-                                <p class="font-medium">{{ $delivery->customer->name }}</p>
+                                <p class="font-medium">{{ $delivery->customer?->name ?? 'N/A' }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">Email:</span>
-                                <p class="font-medium">{{ $delivery->customer->email }}</p>
+                                <p class="font-medium">{{ $delivery->customer?->email ?? 'N/A' }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">Phone:</span>
-                                <p class="font-medium">{{ $delivery->customer->phone ?? 'N/A' }}</p>
+                                <p class="font-medium">{{ $delivery->customer?->phone ?? 'N/A' }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">Dropoff Location:</span>
-                                <p class="font-medium break-words">{{ $delivery->customer->dropoff_location ?? 'N/A' }}</p>
+                                <p class="font-medium break-words">{{ $delivery->customer?->dropoff_location ?? 'N/A' }}</p>
                             </div>
                         </div>
-                        @else
-                        <p class="text-gray-500 text-sm">Customer information not available</p>
-                        @endif
                     </div>
 
                     <!-- Driver Details -->
-                    @if($delivery->driver)
                     <div class="bg-white rounded-lg shadow p-6">
                         <h3 class="font-bold text-lg mb-4">Driver Details</h3>
                         <div class="space-y-2 text-sm">
                             <div>
                                 <span class="text-gray-600">Name:</span>
-                                <p class="font-medium">{{ $delivery->driver->first_name }} {{ $delivery->driver->last_name }}</p>
+                                <p class="font-medium">{{ trim(($delivery->driver?->first_name ?? '').' '.($delivery->driver?->last_name ?? '')) ?: 'N/A' }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">Contact:</span>
-                                <p class="font-medium">{{ $delivery->driver->contact_info ?? 'N/A' }}</p>
+                                <p class="font-medium">{{ $delivery->driver?->contact_info ?? 'N/A' }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">License:</span>
-                                <p class="font-medium">{{ $delivery->driver->license ?? 'N/A' }}</p>
+                                <p class="font-medium">{{ $delivery->driver?->license ?? 'N/A' }}</p>
                             </div>
                         </div>
                     </div>
@@ -102,11 +93,6 @@
                         </button>
                         <p class="text-xs text-gray-500 mt-2">Enable real-time driver location updates</p>
                     </div>
-                    @else
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <p class="text-gray-500 text-sm">No driver assigned to this delivery</p>
-                    </div>
-                    @endif
 
                     <!-- Delivery Info -->
                     <div class="bg-white rounded-lg shadow p-6">
@@ -155,14 +141,16 @@
             addCustomerMarker();
             
             // Add driver marker if available
-            if ({{ $delivery->driver_latitude ?? 'null' }} && {{ $delivery->driver_longitude ?? 'null' }}) {
-                addDriverMarker({{ $delivery->driver_latitude }}, {{ $delivery->driver_longitude }});
+            const driverLat = @json($delivery->driver_latitude);
+            const driverLon = @json($delivery->driver_longitude);
+            if (driverLat !== null && driverLon !== null) {
+                addDriverMarker(driverLat, driverLon);
             }
         }
 
         // Try to geocode and add customer marker
         function addCustomerMarker() {
-            const location = "{{ e($delivery->customer->dropoff_location ?? '') }}";
+            const location = "{{ e($delivery->customer?->dropoff_location ?? '') }}";
             if (!location) return;
 
             // Using Nominatim API (OpenStreetMap's geocoding service)
@@ -182,7 +170,7 @@
                                 popupAnchor: [1, -34],
                                 shadowSize: [41, 41]
                             })
-                        }).addTo(map).bindPopup(`<strong>Customer:</strong><br>{{ $delivery->customer->name }}<br><strong>Location:</strong><br>${location}`);
+                        }).addTo(map).bindPopup(`<strong>Customer:</strong><br>{{ $delivery->customer?->name ?? 'N/A' }}<br><strong>Location:</strong><br>${location}`);
 
                         map.setView([lat, lon], 14);
                     }
@@ -263,7 +251,7 @@
 
         // Update location on server
         function updateLocation(lat, lon) {
-            fetch(`{{ route('tank.deliveries.location.update', $delivery) }}`, {
+            fetch(`{{ url('/tank-deliveries/'.$delivery->getRouteKey().'/location') }}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

@@ -61,29 +61,29 @@ class TankDeliveryController extends Controller
     /**
      * Show tank delivery map view
      */
-    public function showMap(TankDelivery $delivery)
+    public function showMap(TankDelivery $tank_delivery)
     {
-        $delivery->load('tank', 'customer', 'driver');
+        $tank_delivery->load('tank', 'customer', 'driver');
         
         // Return JSON for AJAX or view for direct access
         if (request()->wantsJson()) {
             return response()->json([
-                'id' => $delivery->id,
-                'tank' => $delivery->tank,
-                'customer' => $delivery->customer,
-                'driver' => $delivery->driver,
-                'date_delivered' => $delivery->date_delivered,
-                'created_at' => $delivery->created_at,
+                'id' => $tank_delivery->id,
+                'tank' => $tank_delivery->tank,
+                'customer' => $tank_delivery->customer,
+                'driver' => $tank_delivery->driver,
+                'date_delivered' => $tank_delivery->date_delivered,
+                'created_at' => $tank_delivery->created_at,
             ]);
         }
         
-        return view('tank_deliveries.map', compact('delivery'));
+        return view('tank_deliveries.map', ['delivery' => $tank_delivery]);
     }
 
     /**
      * Update delivery location during delivery
      */
-    public function updateLocation(Request $request, TankDelivery $delivery)
+    public function updateLocation(Request $request, TankDelivery $tank_delivery)
     {
         $validated = $request->validate([
             'latitude' => 'required|numeric|between:-90,90',
@@ -91,7 +91,7 @@ class TankDeliveryController extends Controller
         ]);
 
         // Store current driver location
-        $delivery->update([
+        $tank_delivery->update([
             'driver_latitude' => $validated['latitude'],
             'driver_longitude' => $validated['longitude'],
         ]);
