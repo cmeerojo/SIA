@@ -49,8 +49,9 @@
                     <div>
                         <label class="text-sm">Payment Method</label>
                         <select name="payment_method" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200">
-                            <option value="Cash">Cash</option>
-                            <option value="G-cash">G-cash</option>
+                            <option value="cash">Cash</option>
+                            <option value="gcash">G-cash</option>
+                            <option value="credit_card">Credit Card</option>
                         </select>
                     </div>
 

@@ -132,6 +132,20 @@ class SalesController extends Controller
     {
         $data = $request->only(['customer_id', 'tank_id', 'price', 'payment_method', 'status']);
 
+        // Normalize payment method to canonical values
+        $method = strtolower(trim((string)($data['payment_method'] ?? '')));
+        $method = str_replace([' ', '-', '_'], '', $method);
+        $map = [
+            'cash' => 'cash',
+            'gcash' => 'gcash',
+            'gcashpay' => 'gcash',
+            'g' => 'gcash',
+            'gpay' => 'gcash',
+            'creditcard' => 'credit_card',
+            'card' => 'credit_card',
+        ];
+        $data['payment_method'] = $map[$method] ?? $data['payment_method'];
+
         $validator = Validator::make($data, [
             'customer_id' => 'required|exists:customers,id',
             'tank_id' => 'required|exists:tanks,id',
@@ -163,7 +177,23 @@ class SalesController extends Controller
      */
     public function update(Request $request, Sale $sale)
     {
-        $validator = Validator::make($request->all(), [
+        $data = $request->only(['customer_id', 'tank_id', 'price', 'payment_method', 'status']);
+
+        // Normalize payment method to canonical values
+        $method = strtolower(trim((string)($data['payment_method'] ?? '')));
+        $method = str_replace([' ', '-', '_'], '', $method);
+        $map = [
+            'cash' => 'cash',
+            'gcash' => 'gcash',
+            'gcashpay' => 'gcash',
+            'g' => 'gcash',
+            'gpay' => 'gcash',
+            'creditcard' => 'credit_card',
+            'card' => 'credit_card',
+        ];
+        $data['payment_method'] = $map[$method] ?? $data['payment_method'];
+
+        $validator = Validator::make($data, [
             'customer_id' => 'required|exists:customers,id',
             'tank_id' => 'required|exists:tanks,id',
             'price' => 'required|numeric|min:0',
@@ -177,13 +207,7 @@ class SalesController extends Controller
                 ->withInput();
         }
 
-        $sale->update($request->only([
-            'customer_id',
-            'tank_id',
-            'price',
-            'payment_method',
-            'status'
-        ]));
+        $sale->update($data);
 
         return redirect()->route('sales.manage')
             ->with('success', 'Sale updated successfully.');
