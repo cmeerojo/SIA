@@ -17,7 +17,7 @@
         </div>
     </x-slot>
 
-    <div class="py-8">
+    <div class="py-8 bg-gradient-to-br from-orange-50 to-red-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             {{-- Toast container --}}

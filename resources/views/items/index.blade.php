@@ -14,7 +14,9 @@
                         @php $cardClass = 'flex-1 min-w-[220px] bg-white border border-gray-200 shadow-md rounded-lg p-6 flex flex-col items-center'; @endphp
                         <div class="{{ $cardClass }}">
                             <div class="flex items-center gap-2 mb-2">
-                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 7v4a1 1 0 001 1h3m10-5h3a1 1 0 011 1v4a1 1 0 01-1 1h-3m-10 0v6a1 1 0 001 1h8a1 1 0 001-1v-6m-10 0h10"></path></svg>
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z"></path>
+                                </svg>
                                 <span class="font-semibold text-lg text-gray-700">Total Products</span>
                             </div>
                             <div class="text-3xl font-bold text-blue-700">{{ $totalItems }}</div>
