@@ -78,7 +78,7 @@
                     </div>
                     <div class="mb-6 flex justify-between items-center">
                         <div class="flex items-center gap-3">
-                            <button onclick="openAddEntityModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow transition">Add Item</button>
+                            <button onclick="openAddEntityModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow transition">Add Tank</button>
                             <button onclick="document.getElementById('stock-movements-modal').classList.remove('hidden')" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow transition">Stock Movements</button>
                             <button onclick="document.getElementById('stock-movements-modal').classList.remove('hidden')" class="ml-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded shadow transition">Manage Tanks</button>
                         </div>
@@ -202,61 +202,16 @@
     </div>
 </x-app-layout>
 
-<!-- Combined Add Item / Tank Modal -->
+<!-- Add Tank Modal -->
 <div id="add-entity-modal" class="hidden fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl shadow-2xl p-6 max-w-2xl w-full border border-gray-200">
         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold">Add Item or Tank</h3>
+            <h3 class="text-lg font-bold">Add Tank</h3>
             <button onclick="document.getElementById('add-entity-modal').classList.add('hidden')" class="text-2xl text-gray-400">&times;</button>
         </div>
 
-        <div class="mb-4">
-            <label class="inline-flex items-center mr-4">
-                <input type="radio" name="entity_type" value="item" checked class="entity-toggle"> <span class="ms-2">Item</span>
-            </label>
-            <label class="inline-flex items-center">
-                <input type="radio" name="entity_type" value="tank" class="entity-toggle"> <span class="ms-2">Tank</span>
-            </label>
-        </div>
-
-        <!-- Item form -->
-        <form id="add-item-form" action="{{ route('items.store') }}" method="POST">
-            @csrf
-            <div class="grid grid-cols-1 gap-3">
-                <div>
-                    <label class="text-sm font-medium">Brand</label>
-                    <input type="text" name="brand" class="w-full mt-1 border rounded px-3 py-2" required>
-                </div>
-                <div>
-                    <label class="text-sm font-medium">Size</label>
-                    <select name="size" class="w-full mt-1 border rounded px-3 py-2" required>
-                        <option value="">Select size</option>
-                        <option value="S">Small (S)</option>
-                        <option value="M">Medium (M)</option>
-                        <option value="L">Large (L)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="text-sm font-medium">Amount</label>
-                    <input type="number" name="amount" min="0" class="w-full mt-1 border rounded px-3 py-2" required>
-                </div>
-                <div>
-                    <label class="text-sm font-medium">Valve Type</label>
-                    <select name="valve_type" class="w-full mt-1 border rounded px-3 py-2">
-                        <option value="">Select valve type</option>
-                        <option value="POL">POL valve</option>
-                        <option value="A/S">A/S valve</option>
-                    </select>
-                </div>
-            </div>
-            <div class="flex justify-end gap-2 mt-4">
-                <button type="button" onclick="document.getElementById('add-entity-modal').classList.add('hidden')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded">Cancel</button>
-                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">Add Item</button>
-            </div>
-        </form>
-
-        <!-- Tank form (hidden by default) -->
-        <form id="add-tank-form" action="{{ route('tanks.store') }}" method="POST" class="hidden">
+        <!-- Tank form -->
+        <form id="add-tank-form" action="{{ route('tanks.store') }}" method="POST">
             @csrf
             <input type="hidden" name="from_items" value="1">
             <div class="grid grid-cols-1 gap-3">
@@ -272,9 +227,12 @@
                     <label class="text-sm font-medium">Size</label>
                     <select name="size" class="w-full mt-1 border rounded px-3 py-2" required>
                         <option value="">Select size</option>
-                        <option value="S">Small (S)</option>
-                        <option value="M">Medium (M)</option>
-                        <option value="L">Large (L)</option>
+                        <option value="1.4kg">1.4kg</option>
+                        <option value="2.7kg">2.7kg</option>
+                        <option value="7kg">7kg</option>
+                        <option value="11kg">11kg</option>
+                        <option value="22kg">22kg</option>
+                        <option value="50kg">50kg</option>
                     </select>
                 </div>
                 <div>
@@ -349,33 +307,12 @@
 </div>
 
 <script>
-    // Open the combined Add Item/Tank modal and reset to Item by default
+    // Open the Add Tank modal
     function openAddEntityModal() {
-        // set to 'item'
-        const itemRadio = document.querySelector('input[name="entity_type"][value="item"]');
-        const tankRadio = document.querySelector('input[name="entity_type"][value="tank"]');
-        if (itemRadio) itemRadio.checked = true;
-        if (tankRadio) tankRadio.checked = false;
-
-        // show item form, hide tank form
-        document.getElementById('add-item-form').classList.remove('hidden');
-        document.getElementById('add-tank-form').classList.add('hidden');
-
-        // clear inputs
-        document.getElementById('add-item-form').reset();
-        document.getElementById('add-tank-form').reset();
-
+        const tankForm = document.getElementById('add-tank-form');
+        if (tankForm) tankForm.reset();
         document.getElementById('add-entity-modal').classList.remove('hidden');
     }
-
-    // Toggle between Item and Tank forms in the combined Add modal
-    document.querySelectorAll('.entity-toggle').forEach(function(r) {
-        r.addEventListener('change', function() {
-            const type = this.value;
-            document.getElementById('add-item-form').classList.toggle('hidden', type !== 'item');
-            document.getElementById('add-tank-form').classList.toggle('hidden', type !== 'tank');
-        });
-    });
 
     // Open Edit Tank modal and populate form
     document.addEventListener('click', function(e) {

@@ -15,6 +15,18 @@
                 <input type="text" name="brand" class="w-full mt-1 border rounded px-3 py-2">
             </div>
             <div class="mb-3">
+                <label class="block text-sm font-medium">Size</label>
+                <select name="size" class="w-full mt-1 border rounded px-3 py-2" required>
+                    <option value="">Select size</option>
+                    <option value="1.4kg">1.4kg</option>
+                    <option value="2.7kg">2.7kg</option>
+                    <option value="7kg">7kg</option>
+                    <option value="11kg">11kg</option>
+                    <option value="22kg">22kg</option>
+                    <option value="50kg">50kg</option>
+                </select>
+            </div>
+            <div class="mb-3">
                 <label class="block text-sm font-medium">Valve Type</label>
                 <select name="valve_type" class="w-full mt-1 border rounded px-3 py-2">
                     <option value="">Select valve type</option>
