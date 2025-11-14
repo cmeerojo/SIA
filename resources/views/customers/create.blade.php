@@ -29,12 +29,26 @@
                     <form action="{{ route('customers.store') }}" method="POST" class="space-y-6">
                         @csrf
 
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                        <!-- Type Toggle -->
+                        <div class="flex items-center gap-6">
+                            <input type="hidden" name="type" id="customer_type" value="{{ old('type', 'customer') }}">
+                            <div class="flex items-center gap-2">
+                                <input id="type_customer" type="radio" name="type_choice" value="customer" class="text-blue-600" {{ old('type','customer') === 'customer' ? 'checked' : '' }}>
+                                <label for="type_customer" class="text-sm font-medium text-gray-700">Customer</label>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <input id="type_business" type="radio" name="type_choice" value="business" class="text-blue-600" {{ old('type') === 'business' ? 'checked' : '' }}>
+                                <label for="type_business" class="text-sm font-medium text-gray-700">Business</label>
+                            </div>
+                        </div>
+
+                        <!-- Customer (Individual) Fields -->
+                        <div id="individual_fields" class="grid grid-cols-1 gap-6 sm:grid-cols-3 mt-4">
                             <div>
                                 <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-2">First Name *</label>
                                 <input id="first_name" type="text" name="first_name" value="{{ old('first_name') }}"
                                        class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
-                                       placeholder="First name" required>
+                                       placeholder="First name">
                             </div>
                             <div>
                                 <label for="middle_name" class="block text-sm font-semibold text-gray-700 mb-2">Middle Name</label>
@@ -46,28 +60,50 @@
                                 <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
                                 <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}"
                                        class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
-                                       placeholder="Last name" required>
+                                       placeholder="Last name">
                             </div>
+                        </div>
 
+                        <!-- Business Fields -->
+                        <div id="business_fields" class="grid grid-cols-1 gap-6 sm:grid-cols-3 mt-4" style="display:none;">
+                            <div class="sm:col-span-3">
+                                <label for="business_name" class="block text-sm font-semibold text-gray-700 mb-2">Business Name *</label>
+                                <input id="business_name" type="text" name="business_name" value="{{ old('business_name') }}"
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                                       placeholder="Acme Corp">
+                            </div>
                             <div>
-                                <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Email Address *</label>
+                                <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">Business Email *</label>
                                 <input id="email" type="email" name="email" value="{{ old('email') }}"
                                        class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
-                                       placeholder="customer@example.com" required>
+                                       placeholder="business@example.com">
                             </div>
-
                             <div>
                                 <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
                                 <input id="phone" type="text" name="phone" value="{{ old('phone') }}"
                                        class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
                                        placeholder="+1 (555) 123-4567">
                             </div>
+                        </div>
 
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-4">
+                            <div>
+                                <label for="dropoff_location" class="block text-sm font-semibold text-gray-700 mb-2">Dropoff Location</label>
+                                <input id="dropoff_location" type="text" name="dropoff_location" value="{{ old('dropoff_location') }}"
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                                       placeholder="Address, landmark, or instructions">
+                            </div>
+                            <div>
+                                <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                                <input id="phone" type="text" name="phone" value="{{ old('phone') }}"
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                                       placeholder="+1 (555) 123-4567">
+                            </div>
                             <div class="sm:col-span-2">
                                 <label for="description" class="block text-sm font-semibold text-gray-700 mb-2">Description & Notes</label>
                                 <textarea id="description" name="description" rows="4" 
                                           class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition resize-none"
-                                          placeholder="Enter customer description, preferences, or any relevant notes...">{{ old('description') }}</textarea>
+                                          placeholder="Enter description, preferences, or any relevant notes...">{{ old('description') }}</textarea>
                             </div>
                         </div>
 
@@ -90,3 +126,30 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+    (function(){
+        const typeHidden = document.getElementById('customer_type');
+        const rCustomer = document.getElementById('type_customer');
+        const rBusiness = document.getElementById('type_business');
+        const individual = document.getElementById('individual_fields');
+        const business = document.getElementById('business_fields');
+
+        function apply() {
+            const t = rBusiness.checked ? 'business' : 'customer';
+            typeHidden.value = t;
+            if (t === 'business') {
+                business.style.display = '';
+                individual.style.display = 'none';
+            } else {
+                business.style.display = 'none';
+                individual.style.display = '';
+            }
+        }
+
+        rCustomer?.addEventListener('change', apply);
+        rBusiness?.addEventListener('change', apply);
+        // initial state
+        apply();
+    })();
+</script>
