@@ -42,13 +42,19 @@
                             </svg>
                             <span class="text-lg font-semibold text-gray-700">Customer Directory</span>
                         </div>
-                        <a href="{{ route('customers.create') }}"
+                        <div class="flex items-center gap-3">
+                            <div class="relative">
+                                <input id="customer-search" type="text" placeholder="Search name, email, phone, dropoff, notes" class="w-80 border rounded-lg px-3 py-2 pr-9 text-sm focus:ring-2 focus:ring-orange-200" />
+                                <svg class="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/></svg>
+                            </div>
+                            <a href="{{ route('customers.create') }}"
                            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow transition flex items-center gap-2">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                             </svg>
                             Add Customer
-                        </a>
+                            </a>
+                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -65,7 +71,14 @@
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-100">
                                 @forelse($customers as $customer)
-                                    <tr class="hover:bg-gray-50 transition-colors">
+                                    @php
+                                        $searchName = trim(($customer->full_name ?? '') . ' ' . ($customer->name ?? ''));
+                                        $searchEmail = $customer->email ?? '';
+                                        $searchPhone = $customer->phone ?? '';
+                                        $searchDrop = $customer->dropoff_location ?? '';
+                                        $searchDesc = $customer->description ?? '';
+                                    @endphp
+                                    <tr class="hover:bg-gray-50 transition-colors" data-name="{{ e($searchName) }}" data-email="{{ e($searchEmail) }}" data-phone="{{ e($searchPhone) }}" data-dropoff="{{ e($searchDrop) }}" data-desc="{{ e($searchDesc) }}">
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ $customer->full_name }}</td>
                                         @php $isIndividual = !empty($customer->first_name) || !empty($customer->last_name); @endphp
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
@@ -120,5 +133,25 @@
         </div>
     </div>
 </x-app-layout>
+
+<script>
+    (function(){
+        const input = document.getElementById('customer-search');
+        const table = document.querySelector('table');
+        if (!input || !table) return;
+        const rows = () => table.querySelectorAll('tbody tr');
+        const norm = s => (s||'').toString().toLowerCase();
+        function apply(){
+            const q = norm(input.value);
+            rows().forEach(r => {
+                const hay = [r.dataset.name, r.dataset.email, r.dataset.phone, r.dataset.dropoff, r.dataset.desc]
+                    .map(norm)
+                    .join(' ');
+                r.style.display = q === '' || hay.includes(q) ? '' : 'none';
+            });
+        }
+        input.addEventListener('input', apply);
+    })();
+</script>
 
 <!-- Dropoff modal removed; set in create/edit forms now -->
