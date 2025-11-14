@@ -108,7 +108,7 @@
                             </div>
                         </div>
                         <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500">
-                            <span>{{ now()->format('M d, Y') }}</span>
+                            <span>@prettyDate(now())</span>
                             <span>•</span>
                             <span>{{ now()->format('h:i A') }}</span>
                         </div>

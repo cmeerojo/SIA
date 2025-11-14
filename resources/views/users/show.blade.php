@@ -50,7 +50,7 @@
                                 
                                 <div>
                                     <dt class="text-sm font-medium text-gray-500">Member Since</dt>
-                                    <dd class="text-sm text-gray-900">{{ $user->created_at->format('M d, Y') }}</dd>
+                                    <dd class="text-sm text-gray-900">@prettyDate($user->created_at)</dd>
                                 </div>
                             </dl>
                         </div>

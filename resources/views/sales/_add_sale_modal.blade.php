@@ -1,4 +1,11 @@
 <div id="add-sale-modal" class="fixed inset-0 z-50 hidden">
+    @php
+        // Ensure the partial is resilient: if the parent view didn't pass `$availableTanks`,
+        // fall back to `$tanks` or query filled tanks directly.
+        if (!isset($availableTanks)) {
+            $availableTanks = $tanks ?? \App\Models\Tank::where('status', 'filled')->orderBy('serial_code')->get();
+        }
+    @endphp
     <div id="add-sale-backdrop" class="absolute inset-0 bg-black bg-opacity-40 transition-opacity"></div>
 
     <div class="absolute inset-0 flex items-center justify-center p-4">
@@ -18,7 +25,7 @@
                 </div>
             @endif
 
-            <form action="{{ route('sales.store') }}" method="POST">
+            <form action="{{ route('sales.store') }}" method="POST" id="add-sale-form">
                 @csrf
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
@@ -26,19 +33,34 @@
                         <select name="customer_id" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200">
                             <option value="">Select customer</option>
                             @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}">{{ $customer->name }}</option>
+                                <option value="{{ $customer->id }}">{{ $customer->full_name }}</option>
                             @endforeach
                         </select>
                     </div>
 
                     <div>
-                        <label class="text-sm">Tank</label>
-                        <select name="tank_id" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200">
-                            <option value="">Select tank</option>
-                            @foreach($tanks as $tank)
-                                <option value="{{ $tank->id }}">{{ $tank->serial_code }} ({{ $tank->brand }} - {{ $tank->size }})</option>
-                            @endforeach
-                        </select>
+                        <label class="text-sm">Quantity</label>
+                        <input type="number" name="quantity" id="quantity-input" min="1" value="1" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200" />
+                        <p class="text-xs text-gray-500 mt-1">Number of tanks to sell</p>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="text-sm">Select Tanks (Serial Numbers)</label>
+                        <div id="tank-selection-container" class="border rounded p-3 max-h-48 overflow-y-auto">
+                            <p class="text-xs text-gray-500 mb-2">Select tanks by checking the boxes below. Quantity must match number of selected tanks.</p>
+                            <div class="space-y-2" id="tank-checkboxes">
+                                @foreach($availableTanks as $tank)
+                                    <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
+                                        <input type="checkbox" name="tank_ids[]" value="{{ $tank->id }}" class="tank-checkbox border-gray-300 rounded text-orange-600 focus:ring-orange-500" />
+                                        <span class="text-sm">{{ $tank->serial_code }} - {{ $tank->brand ?? 'N/A' }} ({{ $tank->size ?? 'N/A' }})</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                            @if(empty($availableTanks) || $availableTanks->isEmpty())
+                                <p class="text-sm text-gray-500">No available tanks (status: filled)</p>
+                            @endif
+                        </div>
+                        <p class="text-xs text-red-500 mt-1" id="tank-selection-error" style="display: none;">Quantity must match the number of selected tanks.</p>
                     </div>
 
                     <div>
@@ -110,4 +132,77 @@
             toggleAddSaleModal(false);
         }
     });
+
+    // Handle quantity and tank selection synchronization
+    (function() {
+        const quantityInput = document.getElementById('quantity-input');
+        const tankCheckboxes = document.querySelectorAll('.tank-checkbox');
+        const form = document.getElementById('add-sale-form');
+        const errorMsg = document.getElementById('tank-selection-error');
+
+        function updateQuantityFromSelection() {
+            const selectedCount = document.querySelectorAll('.tank-checkbox:checked').length;
+            if (selectedCount > 0) {
+                quantityInput.value = selectedCount;
+            }
+            validateSelection();
+        }
+
+        function validateSelection() {
+            const quantity = parseInt(quantityInput.value) || 0;
+            const selectedCount = document.querySelectorAll('.tank-checkbox:checked').length;
+            
+            if (quantity !== selectedCount && selectedCount > 0) {
+                errorMsg.style.display = 'block';
+                return false;
+            } else {
+                errorMsg.style.display = 'none';
+                return true;
+            }
+        }
+
+        function limitSelection() {
+            const quantity = parseInt(quantityInput.value) || 0;
+            const checkboxes = Array.from(tankCheckboxes);
+            const checked = checkboxes.filter(cb => cb.checked);
+            
+            if (checked.length >= quantity && quantity > 0) {
+                checkboxes.forEach(cb => {
+                    if (!cb.checked) {
+                        cb.disabled = true;
+                    }
+                });
+            } else {
+                checkboxes.forEach(cb => {
+                    cb.disabled = false;
+                });
+            }
+        }
+
+        // When quantity changes, limit tank selection
+        quantityInput.addEventListener('input', function() {
+            limitSelection();
+            validateSelection();
+        });
+
+        // When tanks are selected, update quantity
+        tankCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateQuantityFromSelection();
+                limitSelection();
+            });
+        });
+
+        // Validate on form submit
+        form.addEventListener('submit', function(e) {
+            if (!validateSelection()) {
+                e.preventDefault();
+                alert('Quantity must match the number of selected tanks. Please adjust your selection.');
+                return false;
+            }
+        });
+
+        // Initialize
+        limitSelection();
+    })();
 </script>

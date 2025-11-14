@@ -26,7 +26,7 @@
                         <tr class="border-t">
                             <td class="py-2">{{ $tank->serial_code }}</td>
                             <td class="py-2">{{ ucfirst($tank->status) }}</td>
-                            <td class="py-2">{{ $tank->created_at->format('Y-m-d') }}</td>
+                            <td class="py-2">@prettyDate($tank->created_at)</td>
                             <td class="py-2 text-right">
                                 <a href="{{ route('tanks.show', $tank) }}" class="text-blue-600">History</a>
                                 <a href="{{ route('tanks.edit', $tank) }}" class="ml-2 text-gray-600">Edit</a>

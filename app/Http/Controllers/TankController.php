@@ -11,7 +11,7 @@ class TankController extends Controller
     /**
      * Serve the Items index but backed by Tanks (full replacement of Items)
      */
-    public function index()
+    public function index(Request $request)
     {
         // Treat Tanks as Items for the items UI
         $items = Tank::orderBy('created_at', 'desc')->get();
@@ -19,8 +19,20 @@ class TankController extends Controller
         $mostRecentItem = $items->first();
         $itemsWithDates = $items; // already ordered by created_at desc
 
-        // Tanks quick access
-        $recentTanks = Tank::orderBy('created_at', 'desc')->limit(8)->get();
+        // Tanks quick access - apply search filter if provided
+        $tankQuery = Tank::orderBy('created_at', 'desc');
+        
+        if ($request->has('tank_search') && !empty($request->tank_search)) {
+            $search = $request->tank_search;
+            $tankQuery->where(function($q) use ($search) {
+                $q->where('serial_code', 'like', "%{$search}%")
+                  ->orWhere('brand', 'like', "%{$search}%")
+                  ->orWhere('status', 'like', "%{$search}%")
+                  ->orWhere('valve_type', 'like', "%{$search}%");
+            });
+        }
+        
+        $recentTanks = $tankQuery->limit(100)->get(); // Increased limit to show more results when searching
         $tanksInStore = Tank::where('status', 'filled')->count();
         $tanksWithCustomers = Tank::where('status', 'with_customer')->count();
 
@@ -41,7 +53,7 @@ class TankController extends Controller
         return view('items.index', compact(
             'items', 'totalItems', 'mostRecentItem', 'itemsWithDates',
             'recentTanks', 'tanksInStore', 'tanksWithCustomers', 'groups', 'serials'
-        ));
+        ))->with('tankSearch', $request->tank_search ?? '');
     }
 
     public function create()

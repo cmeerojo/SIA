@@ -13,6 +13,7 @@ class TankDelivery extends Model
 
     protected $fillable = [
         'tank_id',
+        'sale_id',
         'customer_id',
         'driver_id',
         'date_delivered',
@@ -31,6 +32,11 @@ class TankDelivery extends Model
     public function tank()
     {
         return $this->belongsTo(Tank::class);
+    }
+
+    public function sale()
+    {
+        return $this->belongsTo(\App\Models\Sale::class);
     }
 
     public function customer()

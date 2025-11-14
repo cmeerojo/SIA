@@ -3,7 +3,7 @@
         <div class="flex items-center justify-between">
             <div>
                 <h2 class="font-bold text-2xl text-gray-800">Tank Delivery Map</h2>
-                <p class="text-gray-600 text-sm mt-1">Tank: {{ $delivery->tank?->serial_code ?? 'N/A' }} → {{ $delivery->customer?->name ?? 'N/A' }}</p>
+                <p class="text-gray-600 text-sm mt-1">Sale: #{{ $delivery->sale?->id ?? 'N/A' }} → {{ $delivery->customer?->full_name ?? 'N/A' }} ({{ $delivery->sale?->tanks->count() ?? 0 }} tank{{ ($delivery->sale?->tanks->count() ?? 0) === 1 ? '' : 's' }})</p>
             </div>
             <a href="{{ route('tank.deliveries.index') }}" class="text-blue-600 hover:text-blue-800 font-medium">← Back to Deliveries</a>
         </div>
@@ -25,22 +25,19 @@
                     <div class="bg-white rounded-lg shadow p-6">
                         <h3 class="font-bold text-lg mb-4">Tank Details</h3>
                         <div class="space-y-2 text-sm">
-                            <div>
-                                <span class="text-gray-600">Serial Code:</span>
-                                <p class="font-medium">{{ $delivery->tank?->serial_code ?? 'N/A' }}</p>
-                            </div>
-                            <div>
-                                <span class="text-gray-600">Brand:</span>
-                                <p class="font-medium">{{ $delivery->tank?->brand ?? 'N/A' }}</p>
-                            </div>
-                            <div>
-                                <span class="text-gray-600">Size:</span>
-                                <p class="font-medium">{{ $delivery->tank?->size ?? 'N/A' }}</p>
-                            </div>
-                            <div>
-                                <span class="text-gray-600">Status:</span>
-                                <p class="font-medium">{{ $delivery->tank?->status ? ucfirst($delivery->tank->status) : 'N/A' }}</p>
-                            </div>
+                            @if($delivery->sale && $delivery->sale->tanks->isNotEmpty())
+                                @foreach($delivery->sale->tanks as $t)
+                                    <div>
+                                        <span class="text-gray-600">Serial Code:</span>
+                                        <p class="font-medium">{{ $t->serial_code ?? 'N/A' }} — {{ $t->brand ?? 'N/A' }} ({{ $t->size ?? 'N/A' }})</p>
+                                    </div>
+                                @endforeach
+                            @else
+                                <div>
+                                    <span class="text-gray-600">Tank:</span>
+                                    <p class="font-medium">{{ $delivery->tank?->serial_code ?? 'N/A' }}</p>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
@@ -100,11 +97,11 @@
                         <div class="space-y-2 text-sm">
                             <div>
                                 <span class="text-gray-600">Date Delivered:</span>
-                                <p class="font-medium">{{ $delivery->date_delivered ? $delivery->date_delivered->format('M d, Y H:i') : 'Pending' }}</p>
+                                                <p class="font-medium">{{ $delivery->date_delivered ? \App\Providers\AppServiceProvider::formatPrettyDate($delivery->date_delivered, true) : 'Pending' }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">Created:</span>
-                                <p class="font-medium">{{ $delivery->created_at ? $delivery->created_at->format('M d, Y H:i') : 'N/A' }}</p>
+                                <p class="font-medium">{{ $delivery->created_at ? \App\Providers\AppServiceProvider::formatPrettyDate($delivery->created_at, true) : 'N/A' }}</p>
                             </div>
                         </div>
                     </div>

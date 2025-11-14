@@ -29,7 +29,7 @@
                             @if($mostRecentItem)
                                 <div class="text-base text-gray-800 font-medium">{{ $mostRecentItem->brand }}</div>
                                 <div class="text-sm text-gray-500">Size: {{ $mostRecentItem->size }} | Amount: {{ $mostRecentItem->amount }}</div>
-                                <div class="text-xs text-gray-400 mt-1">Added: {{ $mostRecentItem->created_at->format('M d, Y H:i') }}</div>
+                                <div class="text-xs text-gray-400 mt-1">Added: @prettyDate($mostRecentItem->created_at, true)</div>
                             @else
                                 <div class="text-gray-500">No products yet.</div>
                             @endif
@@ -65,7 +65,7 @@
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->brand }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->size }}</td>
                                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $item->amount }}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $item->created_at->format('M d, Y H:i') }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">@prettyDate($item->created_at, true)</td>
                                         </tr>
                                         @endforeach
                                     </tbody>
@@ -100,7 +100,7 @@
                                     <div class="border rounded p-2 text-sm text-gray-700">
                                         <div class="font-medium">{{ $t->serial_code }}</div>
                                         <div class="text-xs text-gray-500">{{ ucfirst($t->status) }}</div>
-                                        <div class="text-xs text-gray-400">Added: {{ $t->created_at->format('Y-m-d') }}</div>
+                                        <div class="text-xs text-gray-400">Added: @prettyDate($t->created_at)</div>
                                         <div class="mt-2 text-right"><a href="{{ route('tanks.show', $t) }}" class="text-indigo-600 text-xs">History</a></div>
                                     </div>
                                 @endforeach
@@ -161,6 +161,32 @@
                                 <h3 class="text-xl font-bold text-gray-800">Tanks (Edit / Movements)</h3>
                                 <button onclick="document.getElementById('stock-movements-modal').classList.add('hidden')" class="text-2xl text-gray-400 hover:text-gray-700 font-bold focus:outline-none">&times;</button>
                             </div>
+                            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                                <form method="GET" action="{{ route('items.index') }}" class="flex items-center gap-2">
+                                    <input 
+                                        type="text" 
+                                        name="tank_search" 
+                                        id="tank-search-input"
+                                        value="{{ old('tank_search', $tankSearch ?? '') }}"
+                                        placeholder="Search by serial, brand, status, or valve type..." 
+                                        class="flex-1 border border-gray-300 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                                    >
+                                    <button 
+                                        type="submit" 
+                                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded-lg shadow transition"
+                                    >
+                                        Search
+                                    </button>
+                                    @if(!empty($tankSearch ?? ''))
+                                        <a 
+                                            href="{{ route('items.index') }}" 
+                                            class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-2 px-4 rounded-lg shadow transition"
+                                        >
+                                            Clear
+                                        </a>
+                                    @endif
+                                </form>
+                            </div>
                             <div class="px-6 py-4">
                                 <div class="overflow-x-auto max-h-96">
                                     <table class="min-w-full divide-y divide-gray-200">
@@ -175,18 +201,28 @@
                                                 </tr>
                                         </thead>
                                         <tbody class="bg-white divide-y divide-gray-100">
-                                            @foreach($recentTanks as $t)
+                                            @forelse($recentTanks as $t)
                                             <tr>
                                                 <td class="px-4 py-2 text-sm text-gray-900">{{ $t->serial_code }}</td>
                                                 <td class="px-4 py-2 text-sm text-gray-900">{{ $t->brand ?? '—' }}</td>
                                                 <td class="px-4 py-2 text-sm text-gray-700">{{ $t->valve_type ?? '—' }}</td>
                                                 <td class="px-4 py-2 text-sm text-gray-700">{{ ucfirst($t->status) }}</td>
-                                                <td class="px-4 py-2 text-sm text-gray-700">{{ $t->created_at->format('Y-m-d') }}</td>
+                                                <td class="px-4 py-2 text-sm text-gray-700">@prettyDate($t->created_at)</td>
                                                 <td class="px-4 py-2 text-sm text-gray-700">
                                                     <button class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded shadow open-edit-tank" data-id="{{ $t->id }}" data-serial="{{ $t->serial_code }}" data-status="{{ $t->status }}" data-brand="{{ $t->brand }}" data-valve="{{ $t->valve_type }}">Edit</button>
                                                 </td>
                                             </tr>
-                                            @endforeach
+                                            @empty
+                                            <tr>
+                                                <td colspan="6" class="px-4 py-8 text-center text-gray-500">
+                                                    @if(!empty($tankSearch ?? ''))
+                                                        No tanks found matching "{{ $tankSearch }}"
+                                                    @else
+                                                        No tanks found
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                            @endforelse
                                         </tbody>
                                     </table>
                                 </div>
@@ -348,6 +384,14 @@
             if (!next) return;
             next.classList.toggle('hidden');
             btn.textContent = next.classList.contains('hidden') ? `Show serials (${btn.textContent.match(/\d+/) ? btn.textContent.match(/\d+/)[0] : ''})` : 'Hide serials';
+        }
+    });
+
+    // Auto-open modal if there's a tank_search parameter in the URL
+    window.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('tank_search')) {
+            document.getElementById('stock-movements-modal').classList.remove('hidden');
         }
     });
 </script>

@@ -66,7 +66,7 @@
                             <tbody class="bg-white divide-y divide-gray-100">
                                 @forelse($customers as $customer)
                                     <tr class="hover:bg-gray-50 transition-colors">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ $customer->name }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">{{ $customer->full_name }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $customer->email }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $customer->phone ?? 'N/A' }}</td>
                                         <td class="px-6 py-4 text-sm text-gray-600 max-w-xs">

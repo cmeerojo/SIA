@@ -25,7 +25,10 @@ class CustomerController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
+            'name'  => ['nullable', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:100'],
+            'middle_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'max:255', 'unique:customers,email'],
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:1000'],
@@ -33,6 +36,19 @@ class CustomerController extends Controller
             'reorder_point' => ['nullable', 'integer', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        // If first/last provided, use them; otherwise try to split legacy name
+        if (empty($validated['first_name']) && !empty($validated['name'])) {
+            $parts = preg_split('/\s+/', trim($validated['name']));
+            $validated['first_name'] = $parts[0] ?? null;
+            $validated['last_name'] = count($parts) > 1 ? array_pop($parts) : null;
+            if (count($parts) > 1) {
+                $validated['middle_name'] = implode(' ', array_slice($parts, 1, count($parts)-1));
+            }
+        }
+
+        // Ensure legacy `name` is present (for backward compatibility)
+        $validated['name'] = trim(sprintf('%s %s %s', $validated['first_name'] ?? '', $validated['middle_name'] ?? '', $validated['last_name'] ?? ''));
 
         Customer::create($validated);
 
@@ -47,7 +63,10 @@ class CustomerController extends Controller
     public function update(Request $request, Customer $customer)
     {
         $validated = $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
+            'name'  => ['nullable', 'string', 'max:255'],
+            'first_name' => ['nullable', 'string', 'max:100'],
+            'middle_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
             'email' => [
                 'required',
                 'email',
@@ -60,6 +79,17 @@ class CustomerController extends Controller
             'reorder_point' => ['nullable', 'integer', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],
         ]);
+
+        if (empty($validated['first_name']) && !empty($validated['name'])) {
+            $parts = preg_split('/\s+/', trim($validated['name']));
+            $validated['first_name'] = $parts[0] ?? null;
+            $validated['last_name'] = count($parts) > 1 ? array_pop($parts) : null;
+            if (count($parts) > 1) {
+                $validated['middle_name'] = implode(' ', array_slice($parts, 1, count($parts)-1));
+            }
+        }
+
+        $validated['name'] = trim(sprintf('%s %s %s', $validated['first_name'] ?? $customer->first_name ?? '', $validated['middle_name'] ?? $customer->middle_name ?? '', $validated['last_name'] ?? $customer->last_name ?? ''));
 
         $customer->update($validated);
 

@@ -18,22 +18,14 @@
                         <div class="p-4 border-b">
                             <h3 class="font-semibold">Record Delivery</h3>
                         </div>
-                        <div class="p-4">
+                            <div class="p-4">
                             <form action="{{ route('tank.deliveries.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-3">
                                 @csrf
                                 <div>
-                                    <label class="text-sm">Tank</label>
-                                    <select name="tank_id" class="w-full mt-1 border rounded px-3 py-2" required>
-                                        @foreach($tanks as $t)
-                                            <option value="{{ $t->id }}">{{ $t->serial_code }} — {{ ucfirst($t->status) }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="text-sm">Customer</label>
-                                    <select name="customer_id" class="w-full mt-1 border rounded px-3 py-2" required>
-                                        @foreach($customers as $c)
-                                            <option value="{{ $c->id }}">{{ $c->name }}</option>
+                                    <label class="text-sm">Sale</label>
+                                    <select name="sale_id" class="w-full mt-1 border rounded px-3 py-2" required>
+                                        @foreach($sales as $s)
+                                            <option value="{{ $s->id }}">#{{ $s->id }} — {{ $s->customer?->full_name ?? 'N/A' }} ({{ $s->tanks->count() }} tank{{ $s->tanks->count() === 1 ? '' : 's' }}) — {{ \App\Providers\AppServiceProvider::formatPrettyDate($s->created_at) }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -42,9 +34,13 @@
                                     <select name="driver_id" class="w-full mt-1 border rounded px-3 py-2">
                                         <option value="">--</option>
                                         @foreach($drivers as $d)
-                                            <option value="{{ $d->id }}">{{ $d->name ?? ($d->first_name.' '.$d->last_name) }}</option>
+                                            <option value="{{ $d->id }}">{{ $d->full_name }}{{ $d->license ? ' — ' . $d->license : '' }}</option>
                                         @endforeach
                                     </select>
+                                </div>
+                                <div>
+                                    <label class="text-sm">Date Delivered (optional)</label>
+                                    <input type="datetime-local" name="date_delivered" class="w-full mt-1 border rounded px-3 py-2" />
                                 </div>
                                 <div class="flex items-end">
                                     <button class="bg-green-600 text-white px-3 py-2 rounded">Record</button>
@@ -61,8 +57,15 @@
                             @foreach($deliveries as $d)
                                 <div class="py-3 flex justify-between items-start">
                                     <div>
-                                        <div class="text-sm font-medium">{{ $d->date_delivered ? $d->date_delivered->format('Y-m-d') : $d->created_at->format('Y-m-d') }} — Tank: {{ $d->tank?->serial_code ?? 'N/A' }} → Customer: {{ $d->customer?->name ?? 'N/A' }}</div>
-                                        <div class="text-xs text-gray-500 mt-1">Driver: {{ $d->driver?->first_name ?? '—' }} {{ $d->driver?->last_name ?? '' }}</div>
+                                        <div class="text-sm font-medium">{{ $d->date_delivered ? \App\Providers\AppServiceProvider::formatPrettyDate($d->date_delivered) : (\App\Providers\AppServiceProvider::formatPrettyDate($d->created_at ?? null)) }} —
+                                            @if($d->sale && $d->sale->tanks->isNotEmpty())
+                                                Tanks: {{ $d->sale->tanks->pluck('serial_code')->join(', ') }}
+                                            @else
+                                                Tank: {{ $d->tank?->serial_code ?? 'N/A' }}
+                                            @endif
+                                            → Customer: {{ $d->customer?->full_name ?? 'N/A' }}
+                                        </div>
+                                        <div class="text-xs text-gray-500 mt-1">Driver: {{ $d->driver?->full_name ?? '—' }}{{ $d->driver?->license ? ' — ' . $d->driver->license : '' }}</div>
                                     </div>
                                     <a href="{{ route('tank.deliveries.map', ['tank_delivery' => $d->getRouteKey()]) }}" class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1 rounded whitespace-nowrap ml-3">
                                         View Map

@@ -21,7 +21,7 @@
                         <div class="p-4 divide-y">
                             @foreach($movements as $m)
                                 <div class="py-3">
-                                    <div class="text-sm text-gray-700">{{ $m->created_at->format('Y-m-d H:i') }} — {{ $m->previous_status ?? 'N/A' }} → {{ $m->new_status }}</div>
+                                    <div class="text-sm text-gray-700">{{ \App\Providers\AppServiceProvider::formatPrettyDate($m->created_at, true) }} — {{ $m->previous_status ?? 'N/A' }} → {{ $m->new_status }}</div>
                                     <div class="text-xs text-gray-500">Customer: {{ optional($m->customer)->name ?? '—' }} • Driver: {{ optional($m->driver)->name ?? (optional($m->driver)->first_name ?? '—') }}</div>
                                 </div>
                             @endforeach

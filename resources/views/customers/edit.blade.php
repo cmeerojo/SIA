@@ -30,13 +30,27 @@
                         @csrf
                         @method('PUT')
 
-                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                            <div class="sm:col-span-2">
-                                <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">Customer Name *</label>
-                                <input id="name" type="text" name="name"
-                                       value="{{ old('name', $customer->name) }}"
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-3">
+                            <div>
+                                <label for="first_name" class="block text-sm font-semibold text-gray-700 mb-2">First Name *</label>
+                                <input id="first_name" type="text" name="first_name"
+                                       value="{{ old('first_name', $customer->first_name ?? '') }}"
                                        class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
-                                       placeholder="Enter customer's full name" required>
+                                       placeholder="First name" required>
+                            </div>
+                            <div>
+                                <label for="middle_name" class="block text-sm font-semibold text-gray-700 mb-2">Middle Name</label>
+                                <input id="middle_name" type="text" name="middle_name"
+                                       value="{{ old('middle_name', $customer->middle_name ?? '') }}"
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                                       placeholder="Middle name (optional)">
+                            </div>
+                            <div>
+                                <label for="last_name" class="block text-sm font-semibold text-gray-700 mb-2">Last Name *</label>
+                                <input id="last_name" type="text" name="last_name"
+                                       value="{{ old('last_name', $customer->last_name ?? '') }}"
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                                       placeholder="Last name" required>
                             </div>
 
                             <div>

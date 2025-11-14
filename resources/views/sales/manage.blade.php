@@ -45,7 +45,8 @@
                         <tr>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Customer</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tank</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tank Serial Numbers</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment</th>
                             <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
@@ -54,12 +55,32 @@
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
                         @foreach($sales as $sale)
-                            <tr data-customer="{{ e(optional($sale->customer)->name) }}" data-tank="{{ e(optional($sale->tank)->serial_code) }}" data-payment="{{ $sale->payment_method }}" data-status="{{ $sale->status }}">
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $sale->created_at->format('Y-m-d H:i') }}</td>
+                            @php
+                                $tankSerials = $sale->tanks->pluck('serial_code')->toArray();
+                                if (empty($tankSerials) && $sale->tank) {
+                                    $tankSerials = [$sale->tank->serial_code];
+                                }
+                                $tankSerialString = implode(', ', $tankSerials);
+                            @endphp
+                            <tr data-customer="{{ e(optional($sale->customer)->name) }}" data-tank="{{ e($tankSerialString) }}" data-payment="{{ $sale->payment_method }}" data-status="{{ $sale->status }}">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">@prettyDate($sale->created_at, true)</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ optional($sale->customer)->name }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ optional($sale->tank)->serial_code }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                    <span class="font-semibold">{{ $sale->quantity ?? 1 }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-700">
+                                    @if(!empty($tankSerials))
+                                        <div class="flex flex-wrap gap-1">
+                                            @foreach($tankSerials as $serial)
+                                                <span class="inline-block bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">{{ $serial }}</span>
+                                            @endforeach
+                                        </div>
+                                    @else
+                                        <span class="text-gray-400">—</span>
+                                    @endif
+                                </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">₱{{ number_format($sale->price, 2) }}</td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $sale->payment_method }}</td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ ucfirst(str_replace('_', ' ', $sale->payment_method)) }}</td>
                                 <td class="px-6 py-4 whitespace-nowrap text-sm">
                                     @if($sale->status === 'completed')
                                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Completed</span>
@@ -108,10 +129,40 @@
 
                     // Populate form fields
                     document.getElementById('edit-customer').value = sale.customer_id;
-                    document.getElementById('edit-tank').value = sale.tank_id;
+                    document.getElementById('edit-quantity').value = sale.quantity || 1;
                     document.getElementById('edit-price').value = sale.price;
                     document.getElementById('edit-payment').value = sale.payment_method.toLowerCase();
                     document.getElementById('edit-status').value = sale.status;
+
+                    // Clear all checkboxes first
+                    document.querySelectorAll('.edit-tank-checkbox').forEach(cb => {
+                        cb.checked = false;
+                        cb.disabled = false;
+                    });
+
+                    // Check tanks associated with this sale
+                    if (sale.tanks && sale.tanks.length > 0) {
+                        sale.tanks.forEach(tank => {
+                            const checkbox = document.querySelector(`.edit-tank-checkbox[value="${tank.id}"]`);
+                            if (checkbox) {
+                                checkbox.checked = true;
+                            }
+                        });
+                    } else if (sale.tank_id) {
+                        // Fallback for backward compatibility
+                        const checkbox = document.querySelector(`.edit-tank-checkbox[value="${sale.tank_id}"]`);
+                        if (checkbox) {
+                            checkbox.checked = true;
+                        }
+                    }
+
+                    // Trigger validation
+                    if (typeof validateEditSelection === 'function') {
+                        validateEditSelection();
+                    }
+                    if (typeof limitEditSelection === 'function') {
+                        limitEditSelection();
+                    }
 
                     // Show modal
                     window.dispatchEvent(new CustomEvent('open-modal', {
@@ -161,6 +212,86 @@
                     setTimeout(() => { toast.classList.add('hidden'); }, 3000);
                 }
             @endif
+        })();
+
+        // Handle quantity and tank selection synchronization for edit modal
+        (function() {
+            const quantityInput = document.getElementById('edit-quantity');
+            const tankCheckboxes = document.querySelectorAll('.edit-tank-checkbox');
+            const form = document.getElementById('edit-sale-form');
+            const errorMsg = document.getElementById('edit-tank-selection-error');
+
+            function updateQuantityFromSelection() {
+                const selectedCount = document.querySelectorAll('.edit-tank-checkbox:checked').length;
+                if (selectedCount > 0 && quantityInput) {
+                    quantityInput.value = selectedCount;
+                }
+                validateEditSelection();
+            }
+
+            function validateEditSelection() {
+                if (!quantityInput || !errorMsg) return true;
+                const quantity = parseInt(quantityInput.value) || 0;
+                const selectedCount = document.querySelectorAll('.edit-tank-checkbox:checked').length;
+                
+                if (quantity !== selectedCount && selectedCount > 0) {
+                    errorMsg.style.display = 'block';
+                    return false;
+                } else {
+                    errorMsg.style.display = 'none';
+                    return true;
+                }
+            }
+
+            function limitEditSelection() {
+                if (!quantityInput) return;
+                const quantity = parseInt(quantityInput.value) || 0;
+                const checkboxes = Array.from(tankCheckboxes);
+                const checked = checkboxes.filter(cb => cb.checked);
+                
+                if (checked.length >= quantity && quantity > 0) {
+                    checkboxes.forEach(cb => {
+                        if (!cb.checked) {
+                            cb.disabled = true;
+                        }
+                    });
+                } else {
+                    checkboxes.forEach(cb => {
+                        cb.disabled = false;
+                    });
+                }
+            }
+
+            // When quantity changes, limit tank selection
+            if (quantityInput) {
+                quantityInput.addEventListener('input', function() {
+                    limitEditSelection();
+                    validateEditSelection();
+                });
+            }
+
+            // When tanks are selected, update quantity
+            tankCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateQuantityFromSelection();
+                    limitEditSelection();
+                });
+            });
+
+            // Validate on form submit
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (!validateEditSelection()) {
+                        e.preventDefault();
+                        alert('Quantity must match the number of selected tanks. Please adjust your selection.');
+                        return false;
+                    }
+                });
+            }
+
+            // Make functions globally available for toggleEditSaleModal
+            window.validateEditSelection = validateEditSelection;
+            window.limitEditSelection = limitEditSelection;
         })();
     </script>
 </x-app-layout>

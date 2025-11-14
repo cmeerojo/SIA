@@ -11,7 +11,8 @@ class Sale extends Model
 
     protected $fillable = [
         'customer_id',
-        'tank_id',
+        'tank_id', // Keep for backward compatibility, but we'll use tanks() relationship
+        'quantity',
         'price',
         'payment_method',
         'status',
@@ -25,5 +26,10 @@ class Sale extends Model
     public function tank()
     {
         return $this->belongsTo(Tank::class);
+    }
+
+    public function tanks()
+    {
+        return $this->belongsToMany(Tank::class, 'sale_tanks')->withTimestamps();
     }
 }

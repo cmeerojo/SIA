@@ -53,7 +53,7 @@
                                         <div>
                                             <div class="font-medium">{{ $del->customer->name }} — {{ $del->item->brand }} ({{ $del->item->size }})</div>
                                             <div class="text-sm text-gray-600">Dropoff: {{ $del->dropoff_location }} • Driver: {{ optional($del->driver)->first_name ?? 'TBD' }} {{ optional($del->driver)->last_name ?? '' }}</div>
-                                            <div class="text-sm text-gray-500">Quantity: {{ $del->quantity }} • Scheduled: {{ $del->created_at->format('M d, Y H:i') }}</div>
+                                            <div class="text-sm text-gray-500">Quantity: {{ $del->quantity }} • Scheduled: @prettyDate($del->created_at, true)</div>
                                         </div>
                                         <div class="flex flex-col items-end gap-2">
                                             <div class="flex gap-2">
@@ -162,7 +162,7 @@
                     <label class="text-sm font-medium">Driver</label>
                     <select name="driver_id" class="w-full mt-1 border rounded px-3 py-2" required>
                         @foreach($drivers as $d)
-                            <option value="{{ $d->id }}">{{ $d->first_name }} {{ $d->last_name }}</option>
+                            <option value="{{ $d->id }}">{{ $d->full_name }}{{ $d->license ? ' — ' . $d->license : '' }}</option>
                         @endforeach
                     </select>
                 </div>

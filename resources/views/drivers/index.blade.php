@@ -24,15 +24,17 @@
                                     <tr class="text-left text-sm text-gray-600">
                                         <th>Name</th>
                                         <th>Contact</th>
-                                        <th></th>
+                                        <th>License</th>
+                                        <th class="text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @foreach($drivers as $d)
                                         <tr class="border-t">
-                                            <td class="py-2">{{ $d->name ?? ($d->first_name.' '.$d->last_name) }}</td>
-                                            <td class="py-2">{{ $d->contact_number ?? $d->contact_info }}</td>
-                                            <td class="py-2 text-right">
+                                                    <td class="py-2">{{ $d->full_name }}</td>
+                                                    <td class="py-2">{{ $d->contact_number ?? $d->contact_info }}</td>
+                                                    <td class="py-2">{{ $d->license ?? '—' }}</td>
+                                                    <td class="py-2 text-right">
                                                 <a href="{{ route('drivers.edit', $d) }}" class="text-gray-600">Edit</a>
                                                 <form action="{{ route('drivers.destroy', $d) }}" method="POST" class="inline-block ml-2">
                                                     @csrf
@@ -43,7 +45,7 @@
                                         </tr>
                                     @endforeach
                                     @if($drivers->isEmpty())
-                                        <tr><td colspan="3" class="py-4 text-gray-500">No drivers</td></tr>
+                                        <tr><td colspan="4" class="py-4 text-gray-500">No drivers</td></tr>
                                     @endif
                                 </tbody>
                             </table>
