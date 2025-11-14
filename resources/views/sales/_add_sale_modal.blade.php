@@ -78,6 +78,14 @@
                     </div>
 
                     <div>
+                        <label class="text-sm">Transaction Type</label>
+                        <select name="transaction_type" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200">
+                            <option value="walk_in">Walk-in</option>
+                            <option value="delivery">Delivery</option>
+                        </select>
+                    </div>
+
+                    <div>
                         <label class="text-sm">Status</label>
                         <select name="status" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200">
                             <option value="pending">Pending</option>

@@ -43,15 +43,7 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    $activeUsersCount = \App\Models\User::where('is_active', true)->count();
-
-    // LPG delivered today: count of tank deliveries recorded today
-    $today = \Carbon\Carbon::today();
-    $lpgDeliveredToday = \App\Models\TankDelivery::whereDate('created_at', $today)
-        ->orWhereDate('date_delivered', $today)
-        ->count();
-
-    return view('dashboard', compact('activeUsersCount', 'lpgDeliveredToday'));
+    return view('dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {

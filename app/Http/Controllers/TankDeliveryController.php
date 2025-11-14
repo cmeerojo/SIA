@@ -19,6 +19,7 @@ class TankDeliveryController extends Controller
         // already been used to create a TankDelivery (i.e., exclude sales already delivered).
         $deliveredSaleIds = TankDelivery::whereNotNull('sale_id')->pluck('sale_id')->filter()->unique()->toArray();
         $sales = \App\Models\Sale::with('customer', 'tanks')
+            ->where('transaction_type', 'delivery')
             ->whereHas('tanks')
             ->whereNotIn('id', $deliveredSaleIds)
             ->orderByDesc('created_at')
@@ -41,6 +42,14 @@ class TankDeliveryController extends Controller
         if (TankDelivery::where('sale_id', $validated['sale_id'])->exists()) {
             return redirect()->back()
                 ->withErrors(['sale_id' => 'A delivery has already been recorded for the selected sale.'])
+                ->withInput();
+        }
+
+        // Guard against walk-in sales being used for deliveries
+        $saleForTypeCheck = \App\Models\Sale::select('id','transaction_type')->find($validated['sale_id']);
+        if (!$saleForTypeCheck || $saleForTypeCheck->transaction_type !== 'delivery') {
+            return redirect()->back()
+                ->withErrors(['sale_id' => 'Only delivery-type sales can be selected for recording a delivery.'])
                 ->withInput();
         }
 

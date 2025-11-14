@@ -77,6 +77,16 @@
                 <x-input-error class="mt-2" :messages="$errors->get('payment_method')" />
             </div>
 
+            <!-- Transaction Type -->
+            <div>
+                <x-input-label for="edit-transaction-type" value="Transaction Type" />
+                <select id="edit-transaction-type" name="transaction_type" class="mt-1 block w-full border-gray-300 focus:border-orange-500 focus:ring-orange-500 rounded-md shadow-sm">
+                    <option value="walk_in">Walk-in</option>
+                    <option value="delivery">Delivery</option>
+                </select>
+                <x-input-error class="mt-2" :messages="$errors->get('transaction_type')" />
+            </div>
+
             <!-- Status -->
             <div>
                 <x-input-label for="edit-status" value="Status" />

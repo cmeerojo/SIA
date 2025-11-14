@@ -16,6 +16,7 @@ class Sale extends Model
         'price',
         'payment_method',
         'status',
+        'transaction_type',
     ];
 
     public function customer()

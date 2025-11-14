@@ -132,6 +132,9 @@
                     document.getElementById('edit-quantity').value = sale.quantity || 1;
                     document.getElementById('edit-price').value = sale.price;
                     document.getElementById('edit-payment').value = sale.payment_method.toLowerCase();
+                    if (document.getElementById('edit-transaction-type')) {
+                        document.getElementById('edit-transaction-type').value = (sale.transaction_type || 'walk_in').toLowerCase();
+                    }
                     document.getElementById('edit-status').value = sale.status;
 
                     // Clear all checkboxes first

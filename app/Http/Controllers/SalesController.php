@@ -172,6 +172,7 @@ class SalesController extends Controller
             'price' => $request->price,
             'payment_method' => $paymentMethod,
             'status' => $request->status,
+            'transaction_type' => $request->transaction_type,
         ], [
             'customer_id' => 'required|exists:customers,id',
             'tank_ids' => 'required|array|min:1',
@@ -180,6 +181,7 @@ class SalesController extends Controller
             'price' => 'required|numeric|min:0',
             'payment_method' => 'required|in:cash,gcash,credit_card',
             'status' => 'required|in:pending,completed',
+            'transaction_type' => 'required|in:walk_in,delivery',
         ]);
 
         // Validate quantity matches number of tanks
@@ -208,13 +210,14 @@ class SalesController extends Controller
             'price' => $request->price,
             'payment_method' => $paymentMethod,
             'status' => $request->status,
+            'transaction_type' => $request->transaction_type ?? 'walk_in',
         ]);
 
         // Attach tanks to sale
         $sale->tanks()->attach($tankIds);
 
         // Update tank status if sale is completed
-        if ($request->status === 'completed') {
+        if ($request->status === 'completed' && ($request->transaction_type ?? 'walk_in') === 'walk_in') {
             Tank::whereIn('id', $tankIds)->update(['status' => 'with_customer']);
         }
 
@@ -271,6 +274,7 @@ class SalesController extends Controller
             'price' => $request->price,
             'payment_method' => $paymentMethod,
             'status' => $request->status,
+            'transaction_type' => $request->transaction_type,
         ], [
             'customer_id' => 'required|exists:customers,id',
             'tank_ids' => 'required|array|min:1',
@@ -279,6 +283,7 @@ class SalesController extends Controller
             'price' => 'required|numeric|min:0',
             'payment_method' => 'required|in:cash,gcash,credit_card',
             'status' => 'required|in:pending,completed',
+            'transaction_type' => 'required|in:walk_in,delivery',
         ]);
 
         // Validate quantity matches number of tanks
@@ -287,7 +292,7 @@ class SalesController extends Controller
         }
 
         // Validate tanks are available (if status changed to completed or tanks changed)
-        if ($request->status === 'completed' || $tankIds !== $oldTankIds) {
+        if ($request->status === 'completed' || $tankIds !== $oldTankIds || $sale->transaction_type !== ($request->transaction_type ?? 'walk_in')) {
             $availableTanks = Tank::whereIn('id', $tankIds)
                 ->where(function($q) use ($oldTankIds) {
                     $q->where('status', 'filled')
@@ -314,33 +319,43 @@ class SalesController extends Controller
             'price' => $request->price,
             'payment_method' => $paymentMethod,
             'status' => $request->status,
+            'transaction_type' => $request->transaction_type ?? $sale->transaction_type ?? 'walk_in',
         ]);
 
         // Update tanks relationship
         $sale->tanks()->sync($tankIds);
 
         // Handle tank status changes
+        $oldType = $sale->getOriginal('transaction_type') ?? 'walk_in';
+        $newType = $request->transaction_type ?? $oldType;
+
         if ($oldStatus === 'completed' && $request->status !== 'completed') {
             // Revert old tanks to filled if sale is no longer completed
-            Tank::whereIn('id', $oldTankIds)->update(['status' => 'filled']);
+            if ($oldType === 'walk_in') {
+                Tank::whereIn('id', $oldTankIds)->update(['status' => 'filled']);
+            }
         } elseif ($oldStatus !== 'completed' && $request->status === 'completed') {
-            // Mark new tanks as with_customer
-            Tank::whereIn('id', $tankIds)->update(['status' => 'with_customer']);
+            // Only mark as with_customer for walk-in
+            if ($newType === 'walk_in') {
+                Tank::whereIn('id', $tankIds)->update(['status' => 'with_customer']);
+            }
             // Revert old tanks if they changed
             if ($oldTankIds !== $tankIds) {
                 $removedTankIds = array_diff($oldTankIds, $tankIds);
                 if (!empty($removedTankIds)) {
-                    Tank::whereIn('id', $removedTankIds)->update(['status' => 'filled']);
+                    if ($oldType === 'walk_in') {
+                        Tank::whereIn('id', $removedTankIds)->update(['status' => 'filled']);
+                    }
                 }
             }
         } elseif ($oldStatus === 'completed' && $request->status === 'completed' && $oldTankIds !== $tankIds) {
             // Tanks changed but still completed
             $removedTankIds = array_diff($oldTankIds, $tankIds);
             $newTankIds = array_diff($tankIds, $oldTankIds);
-            if (!empty($removedTankIds)) {
+            if (!empty($removedTankIds) && $oldType === 'walk_in') {
                 Tank::whereIn('id', $removedTankIds)->update(['status' => 'filled']);
             }
-            if (!empty($newTankIds)) {
+            if (!empty($newTankIds) && $newType === 'walk_in') {
                 Tank::whereIn('id', $newTankIds)->update(['status' => 'with_customer']);
             }
         }
