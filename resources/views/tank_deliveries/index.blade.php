@@ -74,8 +74,9 @@
                                     $dCustomer = $d->customer?->full_name ?? '';
                                     $dDriver = $d->driver?->full_name ?? '';
                                     $dVehicle = $d->vehicle?->plate_number ?? '';
+                                    $status = $d->status ?? 'pending';
                                 @endphp
-                                <div class="py-3 flex justify-between items-start" data-date="{{ e($dDate) }}" data-tanks="{{ e($dTanks) }}" data-customer="{{ e($dCustomer) }}" data-driver="{{ e($dDriver) }}" data-vehicle="{{ e($dVehicle) }}">
+                                <div class="py-3 flex justify-between items-start" data-date="{{ e($dDate) }}" data-tanks="{{ e($dTanks) }}" data-customer="{{ e($dCustomer) }}" data-driver="{{ e($dDriver) }}" data-vehicle="{{ e($dVehicle) }}" data-status="{{ e($status) }}">
                                     <div>
                                         <div class="text-sm font-medium">{{ $dDate }} —
                                             @if($d->sale && $d->sale->tanks->isNotEmpty())
@@ -92,9 +93,18 @@
                                         <div class="text-xs text-gray-500 mt-1">Driver: {{ $dDriver ?: '—' }}{{ $d->driver?->license ? ' — ' . $d->driver->license : '' }}</div>
                                         <div class="text-xs text-gray-500 mt-1">Vehicle: {{ $dVehicle ?: '—' }}</div>
                                     </div>
-                                    <a href="{{ route('tank.deliveries.map', ['tank_delivery' => $d->getRouteKey()]) }}" class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1 rounded whitespace-nowrap ml-3">
-                                        View Map
-                                    </a>
+                                    <div class="flex items-center gap-2 ml-3">
+                                        @if($status === 'completed')
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">Completed</span>
+                                        @elseif($status === 'started')
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">Started</span>
+                                        @else
+                                            <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800">Pending</span>
+                                        @endif
+                                        <a href="{{ route('tank.deliveries.map', ['tank_delivery' => $d->getRouteKey()]) }}" class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1 rounded whitespace-nowrap">
+                                            View Map
+                                        </a>
+                                    </div>
                                 </div>
                             @endforeach
                             @if($deliveries->isEmpty())
@@ -118,7 +128,7 @@
         function apply(){
             const q = norm(input.value);
             rows().forEach(r => {
-                const hay = [r.dataset.date, r.dataset.tanks, r.dataset.customer, r.dataset.driver]
+                const hay = [r.dataset.date, r.dataset.tanks, r.dataset.customer, r.dataset.driver, r.dataset.status]
                     .map(norm)
                     .join(' ');
                 r.style.display = q === '' || hay.includes(q) ? '' : 'none';
