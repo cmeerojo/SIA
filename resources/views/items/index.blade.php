@@ -79,7 +79,6 @@
                     <div class="mb-6 flex justify-between items-center">
                         <div class="flex items-center gap-3">
                             <button onclick="openAddEntityModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded shadow transition">Add Tank</button>
-                            <button onclick="document.getElementById('stock-movements-modal').classList.remove('hidden')" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-6 rounded shadow transition">Stock Movements</button>
                             <button onclick="document.getElementById('stock-movements-modal').classList.remove('hidden')" class="ml-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2 px-4 rounded shadow transition">Manage Tanks</button>
                         </div>
                     </div>
@@ -91,9 +90,7 @@
                                     <h3 class="font-semibold">Tanks</h3>
                                     <div class="text-sm text-gray-500">In store: {{ $tanksInStore }} • With customers: {{ $tanksWithCustomers }}</div>
                                 </div>
-                                <div>
-                                    <button onclick="document.getElementById('stock-movements-modal').classList.remove('hidden')" class="text-sm text-indigo-600">Manage tanks</button>
-                                </div>
+                                <div></div>
                             </div>
                             <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                                 @foreach($recentTanks as $t)
@@ -134,7 +131,6 @@
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ $g->total_amount }}</td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2 items-center">
                                             <button type="button" class="toggle-serials bg-indigo-100 text-indigo-700 py-1 px-3 rounded text-xs" data-key="{{ e($key) }}">Show serials ({{ $g->serial_count }})</button>
-                                            <button type="button" onclick="document.getElementById('stock-movements-modal').classList.remove('hidden')" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold py-1 px-3 rounded text-xs">Manage</button>
                                         </td>
                                     </tr>
                                     <tr class="serials-row hidden bg-gray-50">
@@ -387,11 +383,5 @@
         }
     });
 
-    // Auto-open modal if there's a tank_search parameter in the URL
-    window.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('tank_search')) {
-            document.getElementById('stock-movements-modal').classList.remove('hidden');
-        }
-    });
+    // Removed auto-open for stock movements modal
 </script>
