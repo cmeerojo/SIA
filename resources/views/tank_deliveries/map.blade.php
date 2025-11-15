@@ -31,7 +31,15 @@
                             </div>
                             <div>
                                 <span class="text-gray-600">Drop-off:</span>
-                                <p class="font-medium break-words">{{ $delivery->dropoff_location ?: ($delivery->customer?->dropoff_location ?: 'N/A') }}</p>
+                                @php
+                                    $c = $delivery->customer;
+                                    $dropStreet = $c?->dropoff_street;
+                                    $dropLandmark = $c?->dropoff_landmark;
+                                    $dropCity = $c?->dropoff_city;
+                                    $composed = collect([$dropStreet, $dropLandmark, $dropCity])->filter()->implode(', ');
+                                    $displayDrop = $delivery->dropoff_location ?: ($composed ?: ($c?->dropoff_location ?: 'N/A'));
+                                @endphp
+                                <p class="font-medium break-words">{{ $displayDrop }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">ETA:</span>
@@ -225,34 +233,53 @@
 
         // Try to geocode and add customer marker
         function addCustomerMarker() {
-            const location = "{{ e($delivery->customer?->dropoff_location ?? '') }}";
-            if (!location) return;
+            const legacy = "{{ e($delivery->customer?->dropoff_location ?? '') }}";
+            const street = "{{ e($delivery->customer?->dropoff_street ?? '') }}";
+            const city = "{{ e($delivery->customer?->dropoff_city ?? '') }}";
+            const landmark = "{{ e($delivery->customer?->dropoff_landmark ?? '') }}";
 
-            // Using Nominatim API (OpenStreetMap's geocoding service)
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(location)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.length > 0) {
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-                        
-                        customerMarker = L.marker([lat, lon], {
-                            icon: L.icon({
-                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-                                iconSize: [25, 41],
-                                iconAnchor: [12, 41],
-                                popupAnchor: [1, -34],
-                                shadowSize: [41, 41]
-                            })
-                        }).addTo(map).bindPopup(`<strong>Customer:</strong><br>{{ $delivery->customer?->name ?? 'N/A' }}<br><strong>Location:</strong><br>${location}`);
+            // Build a list of increasingly broad queries, preferring precise combinations.
+            const queries = [];
+            const composed = [street, landmark, city].filter(Boolean).join(', ');
+            if (composed) queries.push(composed + ', Philippines');
+            if (landmark && city) queries.push([landmark, city, 'Philippines'].join(', '));
+            if (street && city) queries.push([street, city, 'Philippines'].join(', '));
+            if (legacy) queries.push(legacy + ', Philippines');
 
-                        map.setView([lat, lon], 14);
-                        drawStartToCustomer();
-                        updateEta();
+            async function geocodeSequential(qs){
+                for (const q of qs){
+                    try {
+                        const url = `https://nominatim.openstreetmap.org/search?format=json&limit=1&countrycodes=ph&q=${encodeURIComponent(q)}`;
+                        const res = await fetch(url, { headers: { 'Accept-Language': 'en' } });
+                        if (!res.ok) continue;
+                        const data = await res.json();
+                        if (Array.isArray(data) && data.length > 0){
+                            return { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), used: q };
+                        }
+                    } catch (e) {
+                        // try next
                     }
-                })
-                .catch(err => console.error('Geocoding error:', err));
+                }
+                return null;
+            }
+
+            geocodeSequential(queries).then(result => {
+                if (!result) return; // no marker if not found
+                customerMarker = L.marker([result.lat, result.lon], {
+                    icon: L.icon({
+                        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                        iconSize: [25, 41],
+                        iconAnchor: [12, 41],
+                        popupAnchor: [1, -34],
+                        shadowSize: [41, 41]
+                    })
+                }).addTo(map).bindPopup(`<strong>Customer:</strong><br>{{ $delivery->customer?->name ?? 'N/A' }}<br><strong>Location:</strong><br>${queries[0] || legacy}`);
+
+                map.setView([result.lat, result.lon], 14);
+                drawStartToCustomer();
+                updateEta();
+            }).catch(err => console.error('Geocoding error:', err));
         }
 
         function drawStartToCustomer() {

@@ -63,8 +63,12 @@ class CustomerController extends Controller
             $validated['name'] = trim(sprintf('%s %s %s', $validated['first_name'] ?? '', $validated['middle_name'] ?? '', $validated['last_name'] ?? ''));
         }
 
-        // Build combined dropoff_location for backward compatibility
-        $validated['dropoff_location'] = trim(($validated['dropoff_street'] ?? '').', '.($validated['dropoff_city'] ?? ''));
+        // Build combined dropoff_location for backward compatibility (include landmark when present)
+        $parts = [];
+        if (!empty($validated['dropoff_street'] ?? null)) $parts[] = $validated['dropoff_street'];
+        if (!empty($validated['dropoff_landmark'] ?? null)) $parts[] = $validated['dropoff_landmark'];
+        if (!empty($validated['dropoff_city'] ?? null)) $parts[] = $validated['dropoff_city'];
+        $validated['dropoff_location'] = trim(implode(', ', $parts));
 
         unset($validated['business_name']);
 
@@ -118,8 +122,15 @@ class CustomerController extends Controller
             $validated['name'] = trim(sprintf('%s %s %s', $validated['first_name'] ?? $customer->first_name ?? '', $validated['middle_name'] ?? $customer->middle_name ?? '', $validated['last_name'] ?? $customer->last_name ?? ''));
         }
 
-        // Build combined dropoff_location for backward compatibility
-        $validated['dropoff_location'] = trim(($validated['dropoff_street'] ?? $customer->dropoff_street ?? '').', '.($validated['dropoff_city'] ?? $customer->dropoff_city ?? ''));
+        // Build combined dropoff_location for backward compatibility (include landmark when present)
+        $street = $validated['dropoff_street'] ?? $customer->dropoff_street ?? '';
+        $landmark = $validated['dropoff_landmark'] ?? $customer->dropoff_landmark ?? '';
+        $city = $validated['dropoff_city'] ?? $customer->dropoff_city ?? '';
+        $parts = [];
+        if (!empty($street)) $parts[] = $street;
+        if (!empty($landmark)) $parts[] = $landmark;
+        if (!empty($city)) $parts[] = $city;
+        $validated['dropoff_location'] = trim(implode(', ', $parts));
 
         unset($validated['business_name']);
 
@@ -145,7 +156,12 @@ class CustomerController extends Controller
             'dropoff_landmark' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $validated['dropoff_location'] = trim(($validated['dropoff_street'] ?? '').', '.($validated['dropoff_city'] ?? ''));
+        // Include landmark for better geocoding
+        $parts = [];
+        if (!empty($validated['dropoff_street'] ?? null)) $parts[] = $validated['dropoff_street'];
+        if (!empty($validated['dropoff_landmark'] ?? null)) $parts[] = $validated['dropoff_landmark'];
+        if (!empty($validated['dropoff_city'] ?? null)) $parts[] = $validated['dropoff_city'];
+        $validated['dropoff_location'] = trim(implode(', ', $parts));
 
         $customer->update($validated);
 

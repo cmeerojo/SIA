@@ -95,7 +95,7 @@ class PurchaseOrderController extends Controller
             $purchase_order->received_at = now();
             $purchase_order->save();
 
-            // Generate unmarked tanks records
+            // Generate unmarked tanks records (each counts as one unit)
             for ($i = 0; $i < $purchase_order->quantity; $i++) {
                 Tank::create([
                     'serial_code' => 'PO'.$purchase_order->id.'-'.str_pad($i+1, 3, '0', STR_PAD_LEFT),
@@ -103,7 +103,7 @@ class PurchaseOrderController extends Controller
                     'brand' => $purchase_order->brand,
                     'valve_type' => null,
                     'size' => $purchase_order->size,
-                    'amount' => 0,
+                    'amount' => 1, // ensure appears in aggregated amount
                     'is_hidden' => false,
                     'is_unmarked' => true,
                 ]);

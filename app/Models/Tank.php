@@ -17,6 +17,7 @@ class Tank extends Model
         'size',
         'amount',
         'is_hidden',
+        'is_unmarked',
     ];
 
     public function movements()

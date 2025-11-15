@@ -36,11 +36,19 @@ class TankController extends Controller
         $tanksInStore = Tank::where('status', 'filled')->count();
         $tanksWithCustomers = Tank::where('status', 'with_customer')->count();
 
+        // Normalize legacy purchase-order generated tanks that may have amount set to 0
+        // Broaden criteria: any tank explicitly flagged unmarked OR with a PO-derived serial pattern
+        Tank::where('amount', 0)
+            ->where(function ($q) {
+                $q->where('is_unmarked', true)
+                  ->orWhere('serial_code', 'like', 'PO%');
+            })
+            ->update(['amount' => 1, 'is_unmarked' => true]);
+
         // Group tanks by brand/size/valve_type for the items table (aggregated view)
-        $groups = Tank::select('brand', 'size', 'valve_type')
-            ->whereNotNull('brand')
+        $groups = Tank::whereNotNull('brand')
             ->groupBy('brand', 'size', 'valve_type')
-            ->selectRaw('brand, size, valve_type, SUM(COALESCE(amount,0)) as total_amount, COUNT(serial_code) as serial_count')
+            ->selectRaw('brand, size, valve_type, SUM(COALESCE(amount,0)) as total_amount, COUNT(*) as serial_count')
             ->get();
 
         // Map serials per group key for dropdown display
