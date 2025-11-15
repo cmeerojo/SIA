@@ -19,7 +19,7 @@
                             <h3 class="font-semibold">Record Delivery</h3>
                         </div>
                             <div class="p-4">
-                            <form action="{{ route('tank.deliveries.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                            <form action="{{ route('tank.deliveries.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-5 gap-3">
                                 @csrf
                                 <div>
                                     <label class="text-sm">Sale</label>
@@ -35,6 +35,15 @@
                                         <option value="">--</option>
                                         @foreach($drivers as $d)
                                             <option value="{{ $d->id }}">{{ $d->full_name }}{{ $d->license ? ' — ' . $d->license : '' }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-sm">Vehicle (optional)</label>
+                                    <select name="vehicle_id" class="w-full mt-1 border rounded px-3 py-2">
+                                        <option value="">--</option>
+                                        @foreach($vehicles as $v)
+                                            <option value="{{ $v->id }}">{{ $v->plate_number }} — {{ $v->model }}{{ $v->color ? ' — '.$v->color : '' }}</option>
                                         @endforeach
                                     </select>
                                 </div>
@@ -64,8 +73,9 @@
                                     $dTanks = $d->sale && $d->sale->tanks->isNotEmpty() ? $d->sale->tanks->pluck('serial_code')->join(', ') : ($d->tank?->serial_code ?? '');
                                     $dCustomer = $d->customer?->full_name ?? '';
                                     $dDriver = $d->driver?->full_name ?? '';
+                                    $dVehicle = $d->vehicle?->plate_number ?? '';
                                 @endphp
-                                <div class="py-3 flex justify-between items-start" data-date="{{ e($dDate) }}" data-tanks="{{ e($dTanks) }}" data-customer="{{ e($dCustomer) }}" data-driver="{{ e($dDriver) }}">
+                                <div class="py-3 flex justify-between items-start" data-date="{{ e($dDate) }}" data-tanks="{{ e($dTanks) }}" data-customer="{{ e($dCustomer) }}" data-driver="{{ e($dDriver) }}" data-vehicle="{{ e($dVehicle) }}">
                                     <div>
                                         <div class="text-sm font-medium">{{ $dDate }} —
                                             @if($d->sale && $d->sale->tanks->isNotEmpty())
@@ -75,7 +85,12 @@
                                             @endif
                                             → Customer: {{ $dCustomer ?: 'N/A' }}
                                         </div>
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            From: {{ $d->start_location ?: 'Legal Street, Pantukan, Davao de Oro' }}
+                                            → To: {{ $d->dropoff_location ?: ($d->customer?->dropoff_location ?: 'N/A') }}
+                                        </div>
                                         <div class="text-xs text-gray-500 mt-1">Driver: {{ $dDriver ?: '—' }}{{ $d->driver?->license ? ' — ' . $d->driver->license : '' }}</div>
+                                        <div class="text-xs text-gray-500 mt-1">Vehicle: {{ $dVehicle ?: '—' }}</div>
                                     </div>
                                     <a href="{{ route('tank.deliveries.map', ['tank_delivery' => $d->getRouteKey()]) }}" class="bg-purple-600 hover:bg-purple-700 text-white text-sm px-3 py-1 rounded whitespace-nowrap ml-3">
                                         View Map

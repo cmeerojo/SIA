@@ -19,10 +19,8 @@ class Driver extends Model
         'contact_number',
     ];
 
-    public function deliveries()
-    {
-        return $this->hasMany(Delivery::class);
-    }
+    // deliveries module removed
+    // public function deliveries() { }
 
     public function getFullNameAttribute(): string
     {

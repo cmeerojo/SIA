@@ -96,6 +96,14 @@
                                         </svg>
                                         Edit
                                     </button>
+                                    <a href="{{ route('sales.receipt', $sale) }}" target="_blank"
+                                       class="inline-flex items-center px-3 py-1.5 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500 ml-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 me-1.5">
+                                            <path d="M6 2.25A2.25 2.25 0 003.75 4.5v3A2.25 2.25 0 006 9.75h12A2.25 2.25 0 0020.25 7.5v-3A2.25 2.25 0 0018 2.25H6zM3.75 12A2.25 2.25 0 006 14.25h12A2.25 2.25 0 0020.25 12v-.75A2.25 2.25 0 0018 9h-3.75a.75.75 0 00-.75.75v.75H10.5v-.75a.75.75 0 00-.75-.75H6A2.25 2.25 0 003.75 11.25V12z" />
+                                            <path d="M6 15.75A2.25 2.25 0 003.75 18v1.5A2.25 2.25 0 006 21.75h12A2.25 2.25 0 0020.25 19.5V18A2.25 2.25 0 0018 15.75H6zm2.25 2.25h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 010-1.5z" />
+                                        </svg>
+                                        Print Receipt
+                                    </a>
                                 </td>
                             </tr>
                         @endforeach

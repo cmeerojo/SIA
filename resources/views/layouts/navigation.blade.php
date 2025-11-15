@@ -85,6 +85,17 @@
                         </x-nav-link>
 
                         @if(auth()->user()?->role === 'manager')
+                            <x-nav-link :href="route('vehicles.index')" :active="request()->routeIs('vehicles*')"
+                                x-bind:class="{'justify-center': !sidebarOpen}"
+                                class="group flex items-center min-w-0 mx-2 px-3 py-2 rounded-md transition-colors duration-200 hover:bg-gray-100">
+                                <div class="flex items-center justify-center w-5 h-5">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 transition-all duration-300">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5l.964 5.785a2.25 2.25 0 01-2.22 2.615H5.006a2.25 2.25 0 01-2.22-2.615L3.75 9z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V6.75A2.25 2.25 0 018.25 4.5h7.5A2.25 2.25 0 0118 6.75V9M6 9h12M6 9l-2.25 7.5M18 9l2.25 7.5" />
+                                    </svg>
+                                </div>
+                                <span x-show="sidebarOpen" x-cloak class="ms-3 truncate">{{ __('Vehicles') }}</span>
+                            </x-nav-link>
                             <x-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.index')"
                                 x-bind:class="{'justify-center': !sidebarOpen}"
                                 class="group flex items-center min-w-0 mx-2 px-3 py-2 rounded-md transition-colors duration-200 hover:bg-gray-100">

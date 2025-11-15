@@ -363,4 +363,13 @@ class SalesController extends Controller
         return redirect()->route('sales.manage')
             ->with('success', 'Sale updated successfully.');
     }
+
+    /**
+     * Show printable receipt for a sale.
+     */
+    public function receipt(Sale $sale)
+    {
+        $sale->load(['customer', 'tanks', 'tank']);
+        return view('sales.receipt', compact('sale'));
+    }
 }

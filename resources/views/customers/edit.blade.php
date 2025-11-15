@@ -97,11 +97,25 @@
 
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div>
-                                <label for="dropoff_location" class="block text-sm font-semibold text-gray-700 mb-2">Dropoff Location</label>
-                                <input id="dropoff_location" type="text" name="dropoff_location"
-                                       value="{{ old('dropoff_location', $customer->dropoff_location) }}"
+                                <label for="dropoff_street" class="block text-sm font-semibold text-gray-700 mb-2">Dropoff Street *</label>
+                                <input id="dropoff_street" type="text" name="dropoff_street"
+                                       value="{{ old('dropoff_street', $customer->dropoff_street) }}"
                                        class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
-                                       placeholder="Address, landmark, or instructions">
+                                       placeholder="e.g., 123 Legal Street" required>
+                            </div>
+                            <div>
+                                <label for="dropoff_city" class="block text-sm font-semibold text-gray-700 mb-2">Dropoff City *</label>
+                                <input id="dropoff_city" type="text" name="dropoff_city"
+                                       value="{{ old('dropoff_city', $customer->dropoff_city) }}"
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                                       placeholder="e.g., Pantukan, Davao de Oro" required>
+                            </div>
+                            <div class="sm:col-span-2">
+                                <label for="dropoff_landmark" class="block text-sm font-semibold text-gray-700 mb-2">Familiar Landmark (optional)</label>
+                                <input id="dropoff_landmark" type="text" name="dropoff_landmark"
+                                       value="{{ old('dropoff_landmark', $customer->dropoff_landmark) }}"
+                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
+                                       placeholder="e.g., Near municipal hall">
                             </div>
                             <div>
                                 <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>

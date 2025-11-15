@@ -16,10 +16,14 @@ class TankDelivery extends Model
         'sale_id',
         'customer_id',
         'driver_id',
+        'vehicle_id',
         'date_delivered',
         'driver_latitude',
         'driver_longitude',
         'driver_location_updated_at',
+        'start_location',
+        'dropoff_location',
+        'status',
     ];
 
     protected $dates = ['date_delivered'];
@@ -47,5 +51,10 @@ class TankDelivery extends Model
     public function driver()
     {
         return $this->belongsTo(Driver::class);
+    }
+
+    public function vehicle()
+    {
+        return $this->belongsTo(Vehicle::class);
     }
 }

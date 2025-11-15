@@ -7,6 +7,7 @@ use App\Models\TankDelivery;
 use App\Models\TankMovement;
 use App\Models\Customer;
 use App\Models\Driver;
+use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -14,7 +15,7 @@ class TankDeliveryController extends Controller
 {
     public function index()
     {
-        $deliveries = TankDelivery::with(['tank', 'sale.tanks', 'customer', 'driver'])->orderBy('created_at', 'desc')->get();
+        $deliveries = TankDelivery::with(['tank', 'sale.tanks', 'customer', 'driver', 'vehicle'])->orderBy('created_at', 'desc')->get();
         // For creating a tank delivery, offer only sales that have tanks attached and that haven't
         // already been used to create a TankDelivery (i.e., exclude sales already delivered).
         $deliveredSaleIds = TankDelivery::whereNotNull('sale_id')->pluck('sale_id')->filter()->unique()->toArray();
@@ -26,8 +27,8 @@ class TankDeliveryController extends Controller
             ->limit(200)
             ->get();
         $drivers = Driver::all();
-
-        return view('tank_deliveries.index', compact('deliveries', 'sales', 'drivers'));
+        $vehicles = Vehicle::all();
+        return view('tank_deliveries.index', compact('deliveries', 'sales', 'drivers', 'vehicles'));
     }
 
     public function store(Request $request)
@@ -35,6 +36,7 @@ class TankDeliveryController extends Controller
         $validated = $request->validate([
             'sale_id' => ['required', 'exists:sales,id'],
             'driver_id' => ['nullable', 'exists:drivers,id'],
+            'vehicle_id' => ['nullable', 'exists:vehicles,id'],
             'date_delivered' => ['nullable', 'date'],
         ]);
 
@@ -63,7 +65,11 @@ class TankDeliveryController extends Controller
                 'tank_id' => $sale->tanks->first()?->id ?? null,
                 'customer_id' => $sale->customer_id,
                 'driver_id' => $validated['driver_id'] ?? null,
+                'vehicle_id' => $validated['vehicle_id'] ?? null,
                 'date_delivered' => $validated['date_delivered'] ?? now(),
+                'start_location' => 'Legal Street, Pantukan, Davao de Oro',
+                'dropoff_location' => $sale->customer?->dropoff_location,
+                'status' => 'pending',
             ]);
 
             // For each tank in the sale, update status and record movement
@@ -91,7 +97,7 @@ class TankDeliveryController extends Controller
      */
     public function showMap(TankDelivery $tank_delivery)
     {
-        $tank_delivery->load('sale.tanks', 'tank', 'customer', 'driver');
+        $tank_delivery->load('sale.tanks', 'tank', 'customer', 'driver', 'vehicle');
         
         // Return JSON for AJAX or view for direct access
         if (request()->wantsJson()) {
@@ -108,22 +114,22 @@ class TankDeliveryController extends Controller
         return view('tank_deliveries.map', ['delivery' => $tank_delivery]);
     }
 
+
     /**
-     * Update delivery location during delivery
+     * Update delivery status
      */
-    public function updateLocation(Request $request, TankDelivery $tank_delivery)
+    public function updateStatus(Request $request, TankDelivery $tank_delivery)
     {
         $validated = $request->validate([
-            'latitude' => 'required|numeric|between:-90,90',
-            'longitude' => 'required|numeric|between:-180,180',
+            'status' => 'required|in:pending,started,completed',
         ]);
 
-        // Store current driver location
-        $tank_delivery->update([
-            'driver_latitude' => $validated['latitude'],
-            'driver_longitude' => $validated['longitude'],
-        ]);
+        $tank_delivery->status = $validated['status'];
+        if ($validated['status'] === 'completed' && !$tank_delivery->date_delivered) {
+            $tank_delivery->date_delivered = now();
+        }
+        $tank_delivery->save();
 
-        return response()->json(['success' => true]);
+        return back()->with('success', 'Delivery status updated.');
     }
 }

@@ -1,43 +1,14 @@
 <?php
 
+// Purged: Standard Deliveries module has been removed.
 namespace App\Http\Controllers;
-
-use App\Models\Delivery;
-use App\Models\Driver;
-use App\Models\Customer;
-use App\Models\Item;
-use App\Models\StockMovement;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 class DeliveryController extends Controller
 {
-    public function index()
-    {
-        $drivers = Driver::all();
-        $customers = Customer::all();
-        $items = Item::all();
-        $deliveries = Delivery::with('customer', 'driver', 'item')->orderBy('created_at', 'desc')->get();
+}
 
-        return view('deliveries.index', compact('drivers', 'customers', 'items', 'deliveries'));
-    }
-
-    public function storeDriver(Request $request)
-    {
-        $this->authorizeManager();
-
-        $validated = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
-            'contact_info' => 'nullable|string|max:255',
-            'license' => 'nullable|string|max:255',
-        ]);
-
-        Driver::create($validated);
-
-        return back()->with('success', 'Driver added.');
-    }
-
+?>
+<!-- Purged: legacy Deliveries code -->
     public function storeDelivery(Request $request)
     {
         $this->authorizeManager();
@@ -46,6 +17,7 @@ class DeliveryController extends Controller
             'customer_id' => 'required|exists:customers,id',
             'dropoff_location' => 'nullable|string|max:1000',
             'driver_id' => 'required|exists:drivers,id',
+            'vehicle_id' => 'required|exists:vehicles,id',
             'item_id' => 'required|exists:items,id',
             'quantity' => 'required|integer|min:1',
         ]);
@@ -64,6 +36,7 @@ class DeliveryController extends Controller
             'customer_id' => $data['customer_id'],
             'dropoff_location' => $data['dropoff_location'] ?? Customer::find($data['customer_id'])->dropoff_location,
             'driver_id' => $data['driver_id'],
+            'vehicle_id' => $data['vehicle_id'],
             'item_id' => $data['item_id'],
             'quantity' => $data['quantity'],
             'status' => 'pending',

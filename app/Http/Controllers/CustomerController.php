@@ -34,7 +34,9 @@ class CustomerController extends Controller
             'email' => ['nullable', 'email', 'max:255', 'unique:customers,email', 'required_if:type,business'],
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:1000'],
-            'dropoff_location' => ['nullable', 'string', 'max:1000'],
+            'dropoff_street' => ['required', 'string', 'max:255'],
+            'dropoff_city' => ['required', 'string', 'max:255'],
+            'dropoff_landmark' => ['nullable', 'string', 'max:255'],
             'contact_number' => ['nullable', 'string', 'max:100'],
             'reorder_point' => ['nullable', 'integer', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],
@@ -60,6 +62,9 @@ class CustomerController extends Controller
             // Ensure legacy `name` is present (for backward compatibility)
             $validated['name'] = trim(sprintf('%s %s %s', $validated['first_name'] ?? '', $validated['middle_name'] ?? '', $validated['last_name'] ?? ''));
         }
+
+        // Build combined dropoff_location for backward compatibility
+        $validated['dropoff_location'] = trim(($validated['dropoff_street'] ?? '').', '.($validated['dropoff_city'] ?? ''));
 
         unset($validated['business_name']);
 
@@ -91,7 +96,9 @@ class CustomerController extends Controller
             ],
             'phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string', 'max:1000'],
-            'dropoff_location' => ['nullable', 'string', 'max:1000'],
+            'dropoff_street' => ['required', 'string', 'max:255'],
+            'dropoff_city' => ['required', 'string', 'max:255'],
+            'dropoff_landmark' => ['nullable', 'string', 'max:255'],
             'contact_number' => ['nullable', 'string', 'max:100'],
             'reorder_point' => ['nullable', 'integer', 'min:0'],
             'description' => ['nullable', 'string', 'max:1000'],
@@ -110,6 +117,9 @@ class CustomerController extends Controller
             }
             $validated['name'] = trim(sprintf('%s %s %s', $validated['first_name'] ?? $customer->first_name ?? '', $validated['middle_name'] ?? $customer->middle_name ?? '', $validated['last_name'] ?? $customer->last_name ?? ''));
         }
+
+        // Build combined dropoff_location for backward compatibility
+        $validated['dropoff_location'] = trim(($validated['dropoff_street'] ?? $customer->dropoff_street ?? '').', '.($validated['dropoff_city'] ?? $customer->dropoff_city ?? ''));
 
         unset($validated['business_name']);
 
@@ -130,8 +140,12 @@ class CustomerController extends Controller
         $this->authorizeManager();
 
         $validated = $request->validate([
-            'dropoff_location' => ['nullable', 'string', 'max:1000'],
+            'dropoff_street' => ['required', 'string', 'max:255'],
+            'dropoff_city' => ['required', 'string', 'max:255'],
+            'dropoff_landmark' => ['nullable', 'string', 'max:255'],
         ]);
+
+        $validated['dropoff_location'] = trim(($validated['dropoff_street'] ?? '').', '.($validated['dropoff_city'] ?? ''));
 
         $customer->update($validated);
 

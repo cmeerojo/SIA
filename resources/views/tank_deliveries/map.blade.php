@@ -21,6 +21,24 @@
 
                 <!-- Delivery Details Section -->
                 <div class="space-y-4">
+                    <!-- Route Details -->
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h3 class="font-bold text-lg mb-4">Route</h3>
+                        <div class="space-y-2 text-sm">
+                            <div>
+                                <span class="text-gray-600">Start:</span>
+                                <p class="font-medium break-words">{{ $delivery->start_location ?: 'Legal Street, Pantukan, Davao de Oro' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Drop-off:</span>
+                                <p class="font-medium break-words">{{ $delivery->dropoff_location ?: ($delivery->customer?->dropoff_location ?: 'N/A') }}</p>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">ETA:</span>
+                                <p id="eta-route" class="font-medium">—</p>
+                            </div>
+                        </div>
+                    </div>
                     <!-- Tank Details -->
                     <div class="bg-white rounded-lg shadow p-6">
                         <h3 class="font-bold text-lg mb-4">Tank Details</h3>
@@ -83,13 +101,43 @@
                         </div>
                     </div>
 
-                    <!-- Start Tracking Button -->
+                    <!-- Vehicle Details -->
                     <div class="bg-white rounded-lg shadow p-6">
-                        <button onclick="startTracking({{ $delivery->id }})" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded transition">
-                            📍 Start GPS Tracking
-                        </button>
-                        <p class="text-xs text-gray-500 mt-2">Enable real-time driver location updates</p>
+                        <h3 class="font-bold text-lg mb-4">Vehicle Details</h3>
+                        <div class="space-y-2 text-sm">
+                            <div>
+                                <span class="text-gray-600">Plate Number:</span>
+                                <p class="font-medium">{{ $delivery->vehicle?->plate_number ?? 'N/A' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Model:</span>
+                                <p class="font-medium">{{ $delivery->vehicle?->model ?? 'N/A' }}</p>
+                            </div>
+                            <div>
+                                <span class="text-gray-600">Color:</span>
+                                <p class="font-medium">{{ $delivery->vehicle?->color ?? 'N/A' }}</p>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- Status + ETA Card -->
+                                <div class="bg-white rounded-lg shadow p-6">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <h3 class="font-bold text-lg">Status</h3>
+                                        <span id="eta-badge" class="px-3 py-1 rounded-full text-sm font-semibold bg-gray-100 text-gray-800">ETA: —</span>
+                                    </div>
+                                    <form action="{{ route('tank.deliveries.status.update', ['tank_delivery' => $delivery->getRouteKey()]) }}" method="POST" class="flex flex-wrap items-center gap-3">
+                                        @csrf
+                                        @method('PATCH')
+                                        <select name="status" class="border-2 rounded-md px-3 py-2.5 text-base leading-6 min-w-[12rem] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                                            <option value="pending" {{ ($delivery->status ?? 'pending') === 'pending' ? 'selected' : '' }}>Pending</option>
+                                            <option value="started" {{ ($delivery->status ?? 'pending') === 'started' ? 'selected' : '' }}>Started</option>
+                                            <option value="completed" {{ ($delivery->status ?? 'pending') === 'completed' ? 'selected' : '' }}>Completed</option>
+                                        </select>
+                                        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white text-base leading-6 px-4 py-2.5 rounded-md">Update</button>
+                                    </form>
+                                </div>
+
 
                     <!-- Delivery Info -->
                     <div class="bg-white rounded-lg shadow p-6">
@@ -97,7 +145,7 @@
                         <div class="space-y-2 text-sm">
                             <div>
                                 <span class="text-gray-600">Date Delivered:</span>
-                                                <p class="font-medium">{{ $delivery->date_delivered ? \App\Providers\AppServiceProvider::formatPrettyDate($delivery->date_delivered, true) : 'Pending' }}</p>
+                                <p class="font-medium">{{ $delivery->date_delivered ? \App\Providers\AppServiceProvider::formatPrettyDate($delivery->date_delivered, true) : 'Pending' }}</p>
                             </div>
                             <div>
                                 <span class="text-gray-600">Created:</span>
@@ -119,7 +167,8 @@
         let driverMarker;
         let customerMarker;
         let deliveryLine;
-        let trackingInterval;
+        let startMarker;
+        let startToCustomerLine;
         const deliveryId = {{ $delivery->id }};
 
         // Initialize map
@@ -134,7 +183,8 @@
                 maxZoom: 19
             }).addTo(map);
 
-            // Add customer marker if location available
+            // Add start and customer markers if locations available
+            addStartMarker();
             addCustomerMarker();
             
             // Add driver marker if available
@@ -143,6 +193,34 @@
             if (driverLat !== null && driverLon !== null) {
                 addDriverMarker(driverLat, driverLon);
             }
+        }
+
+        // Geocode and add start marker
+        function addStartMarker() {
+            const startLoc = "{{ e($delivery->start_location ?: 'Legal Street, Pantukan, Davao de Oro') }}";
+            if (!startLoc) return;
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(startLoc)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+                        startMarker = L.marker([lat, lon], {
+                            icon: L.icon({
+                                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                                iconSize: [25, 41],
+                                iconAnchor: [12, 41],
+                                popupAnchor: [1, -34],
+                                shadowSize: [41, 41]
+                            })
+                        }).addTo(map).bindPopup(`<strong>Start Location</strong><br>${startLoc}`);
+
+                        drawStartToCustomer();
+                        updateEta();
+                    }
+                })
+                .catch(err => console.error('Geocoding error (start):', err));
         }
 
         // Try to geocode and add customer marker
@@ -170,9 +248,26 @@
                         }).addTo(map).bindPopup(`<strong>Customer:</strong><br>{{ $delivery->customer?->name ?? 'N/A' }}<br><strong>Location:</strong><br>${location}`);
 
                         map.setView([lat, lon], 14);
+                        drawStartToCustomer();
+                        updateEta();
                     }
                 })
                 .catch(err => console.error('Geocoding error:', err));
+        }
+
+        function drawStartToCustomer() {
+            if (startMarker && customerMarker) {
+                if (startToCustomerLine) map.removeLayer(startToCustomerLine);
+                startToCustomerLine = L.polyline([
+                    startMarker.getLatLng(),
+                    customerMarker.getLatLng()
+                ], {
+                    color: 'red',
+                    weight: 3,
+                    opacity: 0.6
+                }).addTo(map);
+                updateEta();
+            }
         }
 
         // Add/update driver marker
@@ -204,67 +299,97 @@
                     opacity: 0.7,
                     dashArray: '5, 5'
                 }).addTo(map);
+                updateEta();
             }
         }
 
-        // Start GPS tracking
-        function startTracking(id) {
-            if (!navigator.geolocation) {
-                alert('Geolocation is not supported by your browser');
-                return;
-            }
-
-            // Request permission first
-            if (navigator.permissions && navigator.permissions.query) {
-                navigator.permissions.query({ name: 'geolocation' }).then(permission => {
-                    if (permission.state === 'granted' || permission.state === 'prompt') {
-                        startContinuousTracking();
-                    } else {
-                        alert('Location permission denied');
-                    }
-                });
-            } else {
-                // Fallback for browsers that don't support permissions API
-                startContinuousTracking();
-            }
-        }
-
-        // Continuous tracking
-        function startContinuousTracking() {
-            navigator.geolocation.getCurrentPosition(pos => {
-                updateLocation(pos.coords.latitude, pos.coords.longitude);
-            });
-
-            // Update location every 10 seconds
-            trackingInterval = setInterval(() => {
-                navigator.geolocation.getCurrentPosition(pos => {
-                    updateLocation(pos.coords.latitude, pos.coords.longitude);
-                });
-            }, 10000);
-
-            alert('GPS tracking started! Updates every 10 seconds.');
-            window.addEventListener('beforeunload', () => clearInterval(trackingInterval));
-        }
-
-        // Update location on server
-        function updateLocation(lat, lon) {
-            fetch(`{{ url('/tank-deliveries/'.$delivery->getRouteKey().'/location') }}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                },
-                body: JSON.stringify({ latitude: lat, longitude: lon })
-            }).then(res => res.json())
-              .then(data => {
-                  if (data.success) {
-                      addDriverMarker(lat, lon);
-                  }
-              })
-              .catch(err => console.error('Location update error:', err));
-        }
+        // GPS tracking removed: no client geolocation or server updates
 
         // Initialize map on page load
         document.addEventListener('DOMContentLoaded', initMap);
+                    // Haversine distance + ETA calculator
+                    // Update ETA in UI selecting origin: driver if available else start
+                    function updateEta() {
+                        const etaBadge = document.getElementById('eta-badge');
+                        const etaRoute = document.getElementById('eta-route');
+                        if (!customerMarker) {
+                            if (etaBadge) etaBadge.textContent = 'ETA: —';
+                            if (etaRoute) etaRoute.textContent = '—';
+                            return;
+                        }
+                        const origin = driverMarker ? driverMarker.getLatLng() : (startMarker ? startMarker.getLatLng() : null);
+                        if (!origin) {
+                            if (etaBadge) etaBadge.textContent = 'ETA: —';
+                            if (etaRoute) etaRoute.textContent = '—';
+                            return;
+                        }
+                        // Try road-distance first; fall back to straight-line if routing fails
+                        const dest = customerMarker.getLatLng();
+                        if (etaBadge) etaBadge.textContent = 'ETA: calculating…';
+                        if (etaRoute) etaRoute.textContent = 'calculating…';
+                        roadDistanceKm(origin, dest)
+                            .then(distanceKm => {
+                                if (distanceKm != null) {
+                                    const etaText = computeEtaFromDistance(distanceKm);
+                                    if (etaBadge) etaBadge.textContent = `ETA: ${etaText}`;
+                                    if (etaRoute) etaRoute.textContent = etaText;
+                                } else {
+                                    const etaText = computeEtaHaversine(origin, dest);
+                                    if (etaBadge) etaBadge.textContent = `ETA: ${etaText}`;
+                                    if (etaRoute) etaRoute.textContent = etaText;
+                                }
+                            })
+                            .catch(() => {
+                                const etaText = computeEtaHaversine(origin, dest);
+                                if (etaBadge) etaBadge.textContent = `ETA: ${etaText}`;
+                                if (etaRoute) etaRoute.textContent = etaText;
+                            });
+                    }
+
+                    // Road distance (km) via OSRM demo server; returns Promise<number|null>
+                    function roadDistanceKm(p1, p2) {
+                        const url = `https://router.project-osrm.org/route/v1/driving/${p1.lng},${p1.lat};${p2.lng},${p2.lat}?overview=false&alternatives=false&steps=false`;
+                        return fetch(url)
+                            .then(res => res.ok ? res.json() : Promise.reject())
+                            .then(json => {
+                                if (json && json.code === 'Ok' && json.routes && json.routes.length > 0) {
+                                    const meters = json.routes[0].distance;
+                                    return meters / 1000.0;
+                                }
+                                return null;
+                            })
+                            .catch(() => null);
+                    }
+
+                    // Haversine distance + ETA string (fallback)
+                    function computeEtaHaversine(p1, p2) {
+                        const R = 6371; // km
+                        const toRad = (d) => d * Math.PI / 180;
+                        const dLat = toRad(p2.lat - p1.lat);
+                        const dLon = toRad(p2.lng - p1.lng);
+                        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                                  Math.cos(toRad(p1.lat)) * Math.cos(toRad(p2.lat)) *
+                                  Math.sin(dLon/2) * Math.sin(dLon/2);
+                        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                        const distanceKm = R * c;
+                        const avgSpeedKmh = 35; // heuristic average speed (distance-based ETA)
+                        const hours = distanceKm / avgSpeedKmh;
+                        const minutes = Math.round(hours * 60);
+                        if (minutes < 60) return `${minutes} min (${distanceKm.toFixed(1)} km)`;
+                        const h = Math.floor(minutes / 60);
+                        const m = minutes % 60;
+                        return `${h}h ${m}m (${distanceKm.toFixed(1)} km)`;
+                    }
+
+                    // Compute ETA string from given road distance (km)
+                    function computeEtaFromDistance(distanceKm) {
+                        const avgSpeedKmh = 35; // heuristic average speed (distance-based ETA)
+                        const hours = distanceKm / avgSpeedKmh;
+                        const minutes = Math.round(hours * 60);
+                        if (minutes < 60) return `${minutes} min (${distanceKm.toFixed(1)} km road)`;
+                        const h = Math.floor(minutes / 60);
+                        const m = minutes % 60;
+                        return `${h}h ${m}m (${distanceKm.toFixed(1)} km road)`;
+                    }
     </script>
 </x-app-layout>

@@ -94,7 +94,12 @@
                                                 <span class="text-gray-400 italic">No description</span>
                                             @endif
                                         </td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $customer->dropoff_location ?? '—' }}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                                            {{ $customer->dropoff_location ?? '—' }}
+                                            @if($customer->dropoff_landmark)
+                                                <span class="block text-xs text-gray-500">Landmark: {{ $customer->dropoff_landmark }}</span>
+                                            @endif
+                                        </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium flex gap-2">
                                             <a href="{{ route('customers.edit', $customer) }}"
                                                class="bg-yellow-400 hover:bg-yellow-500 text-white font-bold py-1 px-3 rounded shadow transition">

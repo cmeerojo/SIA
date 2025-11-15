@@ -20,7 +20,7 @@ Route::resource('tanks', \App\Http\Controllers\TankController::class)->middlewar
 Route::get('/tank-deliveries', [\App\Http\Controllers\TankDeliveryController::class, 'index'])->middleware('auth')->name('tank.deliveries.index');
 Route::post('/tank-deliveries', [\App\Http\Controllers\TankDeliveryController::class, 'store'])->middleware('auth')->name('tank.deliveries.store');
 Route::get('/tank-deliveries/{tank_delivery}/map', [\App\Http\Controllers\TankDeliveryController::class, 'showMap'])->middleware('auth')->name('tank.deliveries.map');
-Route::patch('/tank-deliveries/{tank_delivery}/location', [\App\Http\Controllers\TankDeliveryController::class, 'updateLocation'])->middleware('auth')->name('tank.deliveries.location.update');
+Route::patch('/tank-deliveries/{tank_delivery}/status', [\App\Http\Controllers\TankDeliveryController::class, 'updateStatus'])->middleware('auth')->name('tank.deliveries.status.update');
 
 // Drivers CRUD
 Route::resource('drivers', \App\Http\Controllers\DriverController::class)->middleware('auth');
@@ -30,13 +30,7 @@ Route::resource('drivers', \App\Http\Controllers\DriverController::class)->middl
     // stock movements (now operate on Tanks.amount)
     Route::post('/items/movements', [TankController::class, 'storeMovement'])->middleware('auth')->name('items.movements.store');
 
-// deliveries
-Route::get('/deliveries', [\App\Http\Controllers\DeliveryController::class, 'index'])->middleware('auth')->name('deliveries.index');
-Route::post('/deliveries/drivers', [\App\Http\Controllers\DeliveryController::class, 'storeDriver'])->middleware('auth')->name('deliveries.drivers.store');
-Route::post('/deliveries', [\App\Http\Controllers\DeliveryController::class, 'storeDelivery'])->middleware('auth')->name('deliveries.store');
-Route::patch('/deliveries/{delivery}/status', [\App\Http\Controllers\DeliveryController::class, 'updateStatus'])->middleware('auth')->name('deliveries.status.update');
-Route::get('/deliveries/{delivery}/map', [\App\Http\Controllers\DeliveryController::class, 'showMap'])->middleware('auth')->name('deliveries.map');
-Route::patch('/deliveries/{delivery}/location', [\App\Http\Controllers\DeliveryController::class, 'updateLocation'])->middleware('auth')->name('deliveries.location.update');
+// deliveries module disabled
 
 Route::get('/', function () {
     return view('home');
@@ -59,6 +53,12 @@ Route::middleware('auth')->group(function () {
     Route::post('/sales', [\App\Http\Controllers\SalesController::class, 'store'])->name('sales.store');
     Route::get('/sales/{sale}', [\App\Http\Controllers\SalesController::class, 'show'])->name('sales.show');
     Route::patch('/sales/{sale}', [\App\Http\Controllers\SalesController::class, 'update'])->name('sales.update');
+    Route::get('/sales/{sale}/receipt', [\App\Http\Controllers\SalesController::class, 'receipt'])->name('sales.receipt');
+
+    // Vehicles (manager only)
+    Route::get('/vehicles', [\App\Http\Controllers\VehicleController::class, 'index'])->name('vehicles.index');
+    Route::post('/vehicles', [\App\Http\Controllers\VehicleController::class, 'store'])->name('vehicles.store');
+    Route::delete('/vehicles/{vehicle}', [\App\Http\Controllers\VehicleController::class, 'destroy'])->name('vehicles.destroy');
 });
 
 require __DIR__.'/auth.php';
