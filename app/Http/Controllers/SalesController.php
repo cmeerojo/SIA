@@ -202,12 +202,31 @@ class SalesController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
+        // Compute price for 50kg tanks by brand if applicable
+        $computedTotal = 0;
+        $hasComputed = false;
+        $priceMap = config('tank_prices.50kg', []);
+        $selectedTanks = Tank::whereIn('id', $tankIds)->get(['id','brand','size']);
+        foreach ($selectedTanks as $tank) {
+            $size = strtolower(trim((string)($tank->size ?? '')));
+            $brand = strtolower(trim((string)($tank->brand ?? '')));
+            $is50 = $size === '50kg' || $size === '50 kg' || $size === '50' || strpos($size, '50') !== false;
+            if ($is50 && isset($priceMap[$brand])) {
+                $computedTotal += (float)$priceMap[$brand];
+                $hasComputed = true;
+            } else {
+                // If any tank isn't covered by mapping, fall back to provided price
+                $hasComputed = $hasComputed || false;
+            }
+        }
+        $finalPrice = $hasComputed ? $computedTotal : (float)$request->price;
+
         // Create sale
         $sale = Sale::create([
             'customer_id' => $request->customer_id,
             'tank_id' => $tankIds[0] ?? null, // Keep for backward compatibility
             'quantity' => $quantity,
-            'price' => $request->price,
+            'price' => $finalPrice,
             'payment_method' => $paymentMethod,
             'status' => $request->status,
             'transaction_type' => $request->transaction_type ?? 'walk_in',
@@ -311,12 +330,28 @@ class SalesController extends Controller
                 ->withInput();
         }
 
+        // Compute price for 50kg tanks by brand if applicable (edit)
+        $computedTotal = 0;
+        $hasComputed = false;
+        $priceMap = config('tank_prices.50kg', []);
+        $selectedTanks = Tank::whereIn('id', $tankIds)->get(['id','brand','size']);
+        foreach ($selectedTanks as $tank) {
+            $size = strtolower(trim((string)($tank->size ?? '')));
+            $brand = strtolower(trim((string)($tank->brand ?? '')));
+            $is50 = $size === '50kg' || $size === '50 kg' || $size === '50' || strpos($size, '50') !== false;
+            if ($is50 && isset($priceMap[$brand])) {
+                $computedTotal += (float)$priceMap[$brand];
+                $hasComputed = true;
+            }
+        }
+        $finalPrice = $hasComputed ? $computedTotal : (float)$request->price;
+
         // Update sale
         $sale->update([
             'customer_id' => $request->customer_id,
             'tank_id' => $tankIds[0] ?? null, // Keep for backward compatibility
             'quantity' => $quantity,
-            'price' => $request->price,
+            'price' => $finalPrice,
             'payment_method' => $paymentMethod,
             'status' => $request->status,
             'transaction_type' => $request->transaction_type ?? $sale->transaction_type ?? 'walk_in',

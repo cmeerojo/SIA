@@ -85,13 +85,24 @@
                         </x-nav-link>
 
                         @if(auth()->user()?->role === 'manager')
+                            <x-nav-link :href="route('purchase-orders.index')" :active="request()->routeIs('purchase-orders*')"
+                                x-bind:class="{'justify-center': !sidebarOpen}"
+                                class="group flex items-center min-w-0 mx-2 px-3 py-2 rounded-md transition-colors duration-200 hover:bg-gray-100">
+                                <div class="flex items-center justify-center w-5 h-5">
+                                    <!-- Heroicons outline: shopping cart -->
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 transition-all duration-300">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 2.25h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 11-6 0 3 3 0 016 0zm12 0a3 3 0 11-6 0 3 3 0 016 0zM7.5 14.25h9.75m3-10.5h-15.75m16.036 0c.621 0 1.106.56.98 1.172l-1.26 6.3a1.125 1.125 0 01-1.1.928H6.25a1.125 1.125 0 01-1.1-.928l-1.26-6.3a1.125 1.125 0 01.98-1.172" />
+                                    </svg>
+                                </div>
+                                <span x-show="sidebarOpen" x-cloak class="ms-3 truncate">{{ __('Purchase Orders') }}</span>
+                            </x-nav-link>
                             <x-nav-link :href="route('vehicles.index')" :active="request()->routeIs('vehicles*')"
                                 x-bind:class="{'justify-center': !sidebarOpen}"
                                 class="group flex items-center min-w-0 mx-2 px-3 py-2 rounded-md transition-colors duration-200 hover:bg-gray-100">
                                 <div class="flex items-center justify-center w-5 h-5">
+                                    <!-- Heroicons outline: truck -->
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 transition-all duration-300">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5l.964 5.785a2.25 2.25 0 01-2.22 2.615H5.006a2.25 2.25 0 01-2.22-2.615L3.75 9z" />
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 9V6.75A2.25 2.25 0 018.25 4.5h7.5A2.25 2.25 0 0118 6.75V9M6 9h12M6 9l-2.25 7.5M18 9l2.25 7.5" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0114.25 6v6.75m0 0h2.62a2.25 2.25 0 002.154-1.622l1.263-4.043A2.25 2.25 0 0018.169 6H14.25m-12 6.75h3.75m7.5 0h-3.75m-5.25 0a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5zm9 0a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" />
                                     </svg>
                                 </div>
                                 <span x-show="sidebarOpen" x-cloak class="ms-3 truncate">{{ __('Vehicles') }}</span>
@@ -209,6 +220,12 @@
                 </svg>
                 <span>{{ __('Dashboard') }}</span>
             </x-responsive-nav-link>            @if(auth()->user() && auth()->user()->isManager())
+                <x-responsive-nav-link :href="route('purchase-orders.index')" :active="request()->routeIs('purchase-orders*')" class="flex items-center gap-2 px-4 py-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 2.25h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 11-6 0 3 3 0 016 0zm12 0a3 3 0 11-6 0 3 3 0 016 0zM7.5 14.25h9.75m3-10.5h-15.75m16.036 0c.621 0 1.106.56.98 1.172l-1.26 6.3a1.125 1.125 0 01-1.1.928H6.25a1.125 1.125 0 01-1.1-.928l-1.26-6.3a1.125 1.125 0 01.98-1.172" />
+                    </svg>
+                    <span>{{ __('Purchase Orders') }}</span>
+                </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('items.index')" :active="request()->routeIs('items.index')" class="flex items-center gap-2 px-4 py-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
@@ -235,6 +252,12 @@
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
                     </svg>
                     <span>{{ __('Drivers') }}</span>
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('vehicles.index')" :active="request()->routeIs('vehicles*')" class="flex items-center gap-2 px-4 py-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V6a2.25 2.25 0 012.25-2.25h7.5A2.25 2.25 0 0114.25 6v6.75m0 0h2.62a2.25 2.25 0 002.154-1.622l1.263-4.043A2.25 2.25 0 0018.169 6H14.25m-12 6.75h3.75m7.5 0h-3.75m-5.25 0a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5zm9 0a2.25 2.25 0 100 4.5 2.25 2.25 0 000-4.5z" />
+                    </svg>
+                    <span>{{ __('Vehicles') }}</span>
                 </x-responsive-nav-link>
 
                 <x-responsive-nav-link :href="route('customers.index')" :active="request()->routeIs('customers.index')" class="flex items-center gap-2 px-4 py-2">

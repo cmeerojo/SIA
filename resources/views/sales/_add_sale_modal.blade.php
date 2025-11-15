@@ -51,7 +51,7 @@
                             <div class="space-y-2" id="tank-checkboxes">
                                 @foreach($availableTanks as $tank)
                                     <label class="flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded">
-                                        <input type="checkbox" name="tank_ids[]" value="{{ $tank->id }}" class="tank-checkbox border-gray-300 rounded text-orange-600 focus:ring-orange-500" />
+                                        <input type="checkbox" name="tank_ids[]" value="{{ $tank->id }}" data-brand="{{ strtolower($tank->brand ?? '') }}" data-size="{{ strtolower($tank->size ?? '') }}" class="tank-checkbox border-gray-300 rounded text-orange-600 focus:ring-orange-500" />
                                         <span class="text-sm">{{ $tank->serial_code }} - {{ $tank->brand ?? 'N/A' }} ({{ $tank->size ?? 'N/A' }})</span>
                                     </label>
                                 @endforeach
@@ -65,7 +65,8 @@
 
                     <div>
                         <label class="text-sm">Price</label>
-                        <input type="number" step="0.01" name="price" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200" />
+                        <input id="price-input" type="number" step="0.01" name="price" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200" />
+                        <p id="auto-price-hint" class="text-xs text-gray-500 mt-1" style="display:none;">Auto-calculated from 50kg brand prices.</p>
                     </div>
 
                     <div>
@@ -145,6 +146,10 @@
     (function() {
         const quantityInput = document.getElementById('quantity-input');
         const tankCheckboxes = document.querySelectorAll('.tank-checkbox');
+        const priceInput = document.getElementById('price-input');
+        const autoHint = document.getElementById('auto-price-hint');
+
+        const priceMap = { '50kg': { solane: 1082, pryce: 1190, petron: 1185, phoenix: 1078 } };
         const form = document.getElementById('add-sale-form');
         const errorMsg = document.getElementById('tank-selection-error');
 
@@ -154,6 +159,7 @@
                 quantityInput.value = selectedCount;
             }
             validateSelection();
+            autoPrice();
         }
 
         function validateSelection() {
@@ -187,10 +193,37 @@
             }
         }
 
+        function is50kg(size) {
+            if (!size) return false;
+            size = ('' + size).toLowerCase();
+            return size === '50kg' || size === '50 kg' || size === '50' || size.indexOf('50') !== -1;
+        }
+
+        function autoPrice() {
+            if (!priceInput) return;
+            const checked = Array.from(document.querySelectorAll('.tank-checkbox:checked'));
+            let total = 0; let used = false;
+            checked.forEach(cb => {
+                const brand = (cb.getAttribute('data-brand') || '').toLowerCase();
+                const size = (cb.getAttribute('data-size') || '').toLowerCase();
+                if (is50kg(size) && priceMap['50kg'][brand] != null) {
+                    total += priceMap['50kg'][brand];
+                    used = true;
+                }
+            });
+            if (used) {
+                priceInput.value = total.toFixed(2);
+                if (autoHint) autoHint.style.display = '';
+            } else {
+                if (autoHint) autoHint.style.display = 'none';
+            }
+        }
+
         // When quantity changes, limit tank selection
         quantityInput.addEventListener('input', function() {
             limitSelection();
             validateSelection();
+            autoPrice();
         });
 
         // When tanks are selected, update quantity
@@ -198,6 +231,7 @@
             checkbox.addEventListener('change', function() {
                 updateQuantityFromSelection();
                 limitSelection();
+                autoPrice();
             });
         });
 
@@ -212,5 +246,6 @@
 
         // Initialize
         limitSelection();
+        autoPrice();
     })();
 </script>

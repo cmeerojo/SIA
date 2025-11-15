@@ -5,6 +5,10 @@ use App\Http\Controllers\UserManagementController;
 use App\Http\Controllers\ItemController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\TankController;
+use App\Http\Controllers\PurchaseOrderController;
+use App\Models\User;
+use App\Models\TankDelivery;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Route;
 
 Route::resource('customers', CustomerController::class);
@@ -37,7 +41,15 @@ Route::get('/', function () {
 });
 
 Route::get('/dashboard', function () {
-    return view('dashboard');
+    $activeUsersCount = User::where('is_active', true)->count();
+    $lpgDeliveredToday = TankDelivery::where('status', 'completed')
+        ->whereDate('date_delivered', Carbon::today())
+        ->count();
+
+    return view('dashboard', [
+        'activeUsersCount' => $activeUsersCount,
+        'lpgDeliveredToday' => $lpgDeliveredToday,
+    ]);
 })->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
@@ -59,6 +71,12 @@ Route::middleware('auth')->group(function () {
     Route::get('/vehicles', [\App\Http\Controllers\VehicleController::class, 'index'])->name('vehicles.index');
     Route::post('/vehicles', [\App\Http\Controllers\VehicleController::class, 'store'])->name('vehicles.store');
     Route::delete('/vehicles/{vehicle}', [\App\Http\Controllers\VehicleController::class, 'destroy'])->name('vehicles.destroy');
+
+    // Purchase Orders (manager)
+    Route::get('/purchase-orders', [PurchaseOrderController::class, 'index'])->name('purchase-orders.index');
+    Route::post('/purchase-orders', [PurchaseOrderController::class, 'store'])->name('purchase-orders.store');
+    Route::get('/purchase-orders/{purchase_order}/receipt', [PurchaseOrderController::class, 'receipt'])->name('purchase-orders.receipt');
+    Route::patch('/purchase-orders/{purchase_order}/receive', [PurchaseOrderController::class, 'markReceived'])->name('purchase-orders.receive');
 });
 
 require __DIR__.'/auth.php';
