@@ -110,19 +110,20 @@
                         </div>
                     </div>
                     <hr />
-                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-                        <div class="md:col-span-2">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 items-start">
+                        <div>
                             <label class="text-sm font-medium">Brand</label>
-                            <select name="brand" id="brand" class="w-full border rounded px-3 py-2" required>
+                            <select name="brand" id="brand" class="w-full border rounded px-3 py-2 h-10" required>
                                 <option value="solane">Solane</option>
                                 <option value="pryce">Pryce</option>
                                 <option value="petron">Petron</option>
                                 <option value="phoenix">Phoenix</option>
+                                <option value="petronas">Petronas</option>
                             </select>
                         </div>
                         <div>
                             <label class="text-sm font-medium">Size</label>
-                            <select name="size" id="size" class="w-full border rounded px-3 py-2" required>
+                            <select name="size" id="size" class="w-full border rounded px-3 py-2 h-10" required>
                                 <option value="50kg">50kg</option>
                                 <option value="11kg">11kg</option>
                                 <option value="5kg">5kg</option>
@@ -130,13 +131,30 @@
                         </div>
                         <div>
                             <label class="text-sm font-medium">Quantity</label>
-                            <input type="number" min="1" value="1" name="quantity" id="quantity" class="w-full border rounded px-3 py-2" required />
+                            <input type="number" min="1" value="1" name="quantity" id="quantity" class="w-full border rounded px-3 py-2 h-10" required />
                         </div>
                         <div>
                             <label class="text-sm font-medium">Unit Price</label>
-                            <input type="number" step="0.01" name="unit_price" id="unit_price" class="w-full border rounded px-3 py-2" />
-                            <p id="unitPriceHint" class="text-xs text-gray-500 mt-1 hidden">Auto-filled for 50kg pricing.</p>
+                            <input type="number" step="0.01" name="unit_price" id="unit_price" class="w-full border rounded px-3 py-2 h-10" />
                         </div>
+                    </div>
+                    <!-- Pricing rules helper -->
+                    <div class="md:col-span-4">
+                        <details class="mt-2">
+                            <summary class="text-sm text-gray-600 cursor-pointer select-none flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-gray-500"><path fill-rule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25Zm0 3a1.125 1.125 0 1 0 0 2.25 1.125 1.125 0 0 0 0-2.25ZM10.875 9a.75.75 0 0 0-.75.75v7.5c0 .414.336.75.75.75h2.25a.75.75 0 0 0 .75-.75v-7.5a.75.75 0 0 0-.75-.75h-2.25Z" clip-rule="evenodd"/></svg>
+                                Pricing rules (auto-fill)
+                            </summary>
+                            <div class="mt-2 text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded p-3">
+                                <ul class="list-disc pl-5 space-y-1">
+                                    <li>11kg: Solane/Pryce/Petron = ₱1,150 each</li>
+                                    <li>11kg: Petronas/Phoenix = ₱1,100 each</li>
+                                    <li>2.7kg: Pryce = ₱380 each</li>
+                                    <li>50kg: Petronas/Phoenix = ₱3,900 each</li>
+                                    <li>Other combos: enter unit price manually</li>
+                                </ul>
+                            </div>
+                        </details>
                     </div>
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-gray-600">Total: <span id="total_display" class="font-semibold">₱0.00</span></div>
@@ -186,7 +204,7 @@
             }
         });
         (function(){
-            const brandMap50 = @json($brandPrices50);
+            const priceMap = @json($priceMap);
             const brandSel = document.getElementById('brand');
             const sizeSel = document.getElementById('size');
             const qty = document.getElementById('quantity');
@@ -194,15 +212,30 @@
             const hint = document.getElementById('unitPriceHint');
             const totalDisplay = document.getElementById('total_display');
             function is50kg(v){ v=(v||'').toLowerCase(); return v==='50kg'||v==='50 kg'||v==='50'||v.indexOf('50')!==-1; }
+            function normalizeSize(v){ v=(v||'').toLowerCase(); if(is50kg(v)) return '50kg'; if(v==='11kg'||v==='11 kg'||v.indexOf('11')!==-1) return '11kg'; if(v==='2.7kg'||v==='2.7 kg'||v.indexOf('2.7')!==-1) return '2.7kg'; return null; }
+            function normalizeBrand(b){ b=(b||'').toLowerCase(); return b; }
             function recalc(){
-                let size = sizeSel.value; let brand = brandSel.value.toLowerCase();
-                if (is50kg(size) && brandMap50[brand] != null){
-                    unit.value = parseFloat(brandMap50[brand]).toFixed(2); hint.classList.remove('hidden');
-                } else { hint.classList.add('hidden'); }
+                let sizeKey = normalizeSize(sizeSel.value);
+                let brand = normalizeBrand(brandSel.value);
+                if (sizeKey && priceMap[sizeKey] && priceMap[sizeKey][brand] != null){
+                    unit.value = parseFloat(priceMap[sizeKey][brand]).toFixed(2);
+                    unit.dataset.autofilled = 'true';
+                    hint.classList.remove('invisible');
+                } else {
+                    hint.classList.add('invisible');
+                    if (unit.dataset.autofilled === 'true') {
+                        unit.value = '';
+                        unit.dataset.autofilled = 'false';
+                    }
+                }
                 const q = parseInt(qty.value)||0; const up = parseFloat(unit.value)||0;
                 totalDisplay.textContent = '₱'+(q*up).toFixed(2);
             }
-            [brandSel,sizeSel,qty,unit].forEach(el=> el.addEventListener('input', recalc));
+            [brandSel,sizeSel,qty,unit].forEach(el=> {
+                el.addEventListener('input', recalc);
+                el.addEventListener('change', recalc);
+            });
+            unit.addEventListener('input', ()=>{ unit.dataset.autofilled = 'false'; });
             recalc();
         })();
     </script>

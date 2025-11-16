@@ -202,24 +202,49 @@ class SalesController extends Controller
             return redirect()->back()->withErrors($validator)->withInput();
         }
 
-        // Compute price for 50kg tanks by brand if applicable
-        $computedTotal = 0;
-        $hasComputed = false;
-        $priceMap = config('tank_prices.50kg', []);
+        // Enforce: 50kg tanks only to business customers
         $selectedTanks = Tank::whereIn('id', $tankIds)->get(['id','brand','size']);
-        foreach ($selectedTanks as $tank) {
-            $size = strtolower(trim((string)($tank->size ?? '')));
-            $brand = strtolower(trim((string)($tank->brand ?? '')));
-            $is50 = $size === '50kg' || $size === '50 kg' || $size === '50' || strpos($size, '50') !== false;
-            if ($is50 && isset($priceMap[$brand])) {
-                $computedTotal += (float)$priceMap[$brand];
-                $hasComputed = true;
-            } else {
-                // If any tank isn't covered by mapping, fall back to provided price
-                $hasComputed = $hasComputed || false;
+        $has50 = $selectedTanks->contains(function($t){
+            $s = strtolower(trim((string)($t->size ?? '')));
+            return $s === '50kg' || $s === '50 kg' || $s === '50' || strpos($s, '50') !== false;
+        });
+        if ($has50) {
+            $customer = Customer::find($request->customer_id);
+            if (!$customer || strtolower($customer->type ?? 'customer') !== 'business') {
+                return redirect()->back()->withErrors(['customer_id' => '50kg tanks can only be sold to business customers.'])->withInput();
             }
         }
-        $finalPrice = $hasComputed ? $computedTotal : (float)$request->price;
+
+        // Compute auto price across supported size-brand mappings
+        $priceConfig = config('tank_prices', []);
+        $normalizeSize = function($s){
+            $s = strtolower(trim((string)$s));
+            if ($s === '50kg' || $s === '50 kg' || $s === '50' || strpos($s,'50') !== false) return '50kg';
+            if ($s === '11kg' || $s === '11 kg' || strpos($s,'11') !== false) return '11kg';
+            if ($s === '2.7kg' || $s === '2.7 kg' || $s === '2kg' || strpos($s,'2.7') !== false) return '2.7kg';
+            return null;
+        };
+        $normalizeBrand = function($b){
+            $b = strtolower(trim((string)$b));
+            if ($b === 'petronas') return 'petronas';
+            if ($b === 'phoenix') return 'phoenix';
+            if ($b === 'petron') return 'petron';
+            if ($b === 'solane') return 'solane';
+            if ($b === 'pryce') return 'pryce';
+            return $b;
+        };
+        $computedTotal = 0; $autoUsed = true;
+        foreach ($selectedTanks as $t) {
+            $sz = $normalizeSize($t->size);
+            $br = $normalizeBrand($t->brand);
+            if ($sz && isset($priceConfig[$sz]) && isset($priceConfig[$sz][$br])) {
+                $computedTotal += (float)$priceConfig[$sz][$br];
+            } else {
+                $autoUsed = false; // unknown mapping, fallback to manual price
+                break;
+            }
+        }
+        $finalPrice = $autoUsed ? $computedTotal : (float)$request->price;
 
         // Create sale
         $sale = Sale::create([
@@ -330,21 +355,49 @@ class SalesController extends Controller
                 ->withInput();
         }
 
-        // Compute price for 50kg tanks by brand if applicable (edit)
-        $computedTotal = 0;
-        $hasComputed = false;
-        $priceMap = config('tank_prices.50kg', []);
+        // Enforce: 50kg tanks only to business customers (edit)
         $selectedTanks = Tank::whereIn('id', $tankIds)->get(['id','brand','size']);
-        foreach ($selectedTanks as $tank) {
-            $size = strtolower(trim((string)($tank->size ?? '')));
-            $brand = strtolower(trim((string)($tank->brand ?? '')));
-            $is50 = $size === '50kg' || $size === '50 kg' || $size === '50' || strpos($size, '50') !== false;
-            if ($is50 && isset($priceMap[$brand])) {
-                $computedTotal += (float)$priceMap[$brand];
-                $hasComputed = true;
+        $has50 = $selectedTanks->contains(function($t){
+            $s = strtolower(trim((string)($t->size ?? '')));
+            return $s === '50kg' || $s === '50 kg' || $s === '50' || strpos($s, '50') !== false;
+        });
+        if ($has50) {
+            $customer = Customer::find($request->customer_id);
+            if (!$customer || strtolower($customer->type ?? 'customer') !== 'business') {
+                return redirect()->back()->withErrors(['customer_id' => '50kg tanks can only be sold to business customers.'])->withInput();
             }
         }
-        $finalPrice = $hasComputed ? $computedTotal : (float)$request->price;
+
+        // Compute auto price across supported size-brand mappings (edit)
+        $priceConfig = config('tank_prices', []);
+        $normalizeSize = function($s){
+            $s = strtolower(trim((string)$s));
+            if ($s === '50kg' || $s === '50 kg' || $s === '50' || strpos($s,'50') !== false) return '50kg';
+            if ($s === '11kg' || $s === '11 kg' || strpos($s,'11') !== false) return '11kg';
+            if ($s === '2.7kg' || $s === '2.7 kg' || $s === '2kg' || strpos($s,'2.7') !== false) return '2.7kg';
+            return null;
+        };
+        $normalizeBrand = function($b){
+            $b = strtolower(trim((string)$b));
+            if ($b === 'petronas') return 'petronas';
+            if ($b === 'phoenix') return 'phoenix';
+            if ($b === 'petron') return 'petron';
+            if ($b === 'solane') return 'solane';
+            if ($b === 'pryce') return 'pryce';
+            return $b;
+        };
+        $computedTotal = 0; $autoUsed = true;
+        foreach ($selectedTanks as $t) {
+            $sz = $normalizeSize($t->size);
+            $br = $normalizeBrand($t->brand);
+            if ($sz && isset($priceConfig[$sz]) && isset($priceConfig[$sz][$br])) {
+                $computedTotal += (float)$priceConfig[$sz][$br];
+            } else {
+                $autoUsed = false; // unknown mapping
+                break;
+            }
+        }
+        $finalPrice = $autoUsed ? $computedTotal : (float)$request->price;
 
         // Update sale
         $sale->update([

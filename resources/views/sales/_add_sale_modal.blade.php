@@ -30,10 +30,10 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="text-sm">Customer</label>
-                        <select name="customer_id" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200">
+                        <select name="customer_id" id="customer-select" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200">
                             <option value="">Select customer</option>
                             @foreach($customers as $customer)
-                                <option value="{{ $customer->id }}">{{ $customer->full_name }}</option>
+                                <option value="{{ $customer->id }}" data-type="{{ strtolower($customer->type ?? 'customer') }}">{{ $customer->full_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -66,7 +66,7 @@
                     <div>
                         <label class="text-sm">Price</label>
                         <input id="price-input" type="number" step="0.01" name="price" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200" />
-                        <p id="auto-price-hint" class="text-xs text-gray-500 mt-1" style="display:none;">Auto-calculated from 50kg brand prices.</p>
+                        <p id="auto-price-hint" class="text-xs text-gray-500 mt-1" style="display:none;">Auto-calculated from size/brand pricing.</p>
                     </div>
 
                     <div>
@@ -149,7 +149,11 @@
         const priceInput = document.getElementById('price-input');
         const autoHint = document.getElementById('auto-price-hint');
 
-        const priceMap = { '50kg': { solane: 1082, pryce: 1190, petron: 1185, phoenix: 1078 } };
+        const priceMap = {
+            '11kg': { solane: 1150, pryce: 1150, petron: 1150, petronas: 1100, phoenix: 1100 },
+            '2.7kg': { pryce: 380 },
+            '50kg': { phoenix: 3900, petronas: 3900 }
+        };
         const form = document.getElementById('add-sale-form');
         const errorMsg = document.getElementById('tank-selection-error');
 
@@ -199,24 +203,53 @@
             return size === '50kg' || size === '50 kg' || size === '50' || size.indexOf('50') !== -1;
         }
 
+        function normalizeSize(size){
+            size = (''+ (size||'')).toLowerCase();
+            if (is50kg(size)) return '50kg';
+            if (size === '11kg' || size === '11 kg' || size.indexOf('11') !== -1) return '11kg';
+            if (size === '2.7kg' || size === '2.7 kg' || size.indexOf('2.7') !== -1) return '2.7kg';
+            return null;
+        }
+        function normalizeBrand(brand){
+            brand = (''+(brand||'')).toLowerCase();
+            if (brand === 'petronas') return 'petronas';
+            if (brand === 'phoenix') return 'phoenix';
+            if (brand === 'petron') return 'petron';
+            if (brand === 'solane') return 'solane';
+            if (brand === 'pryce') return 'pryce';
+            return brand;
+        }
+
         function autoPrice() {
             if (!priceInput) return;
             const checked = Array.from(document.querySelectorAll('.tank-checkbox:checked'));
-            let total = 0; let used = false;
-            checked.forEach(cb => {
-                const brand = (cb.getAttribute('data-brand') || '').toLowerCase();
-                const size = (cb.getAttribute('data-size') || '').toLowerCase();
-                if (is50kg(size) && priceMap['50kg'][brand] != null) {
-                    total += priceMap['50kg'][brand];
-                    used = true;
+            let total = 0; let used = true;
+            for (const cb of checked) {
+                const brand = normalizeBrand(cb.getAttribute('data-brand'));
+                const sizeKey = normalizeSize(cb.getAttribute('data-size'));
+                if (sizeKey && priceMap[sizeKey] && priceMap[sizeKey][brand] != null){
+                    total += Number(priceMap[sizeKey][brand]);
+                } else {
+                    used = false; break;
                 }
-            });
+            }
             if (used) {
                 priceInput.value = total.toFixed(2);
                 if (autoHint) autoHint.style.display = '';
             } else {
                 if (autoHint) autoHint.style.display = 'none';
             }
+        }
+
+        function enforceBusinessFor50kg() {
+            const customerSel = document.getElementById('customer-select');
+            const customerType = (customerSel.options[customerSel.selectedIndex]?.dataset.type || 'customer').toLowerCase();
+            const has50 = Array.from(document.querySelectorAll('.tank-checkbox:checked')).some(cb => is50kg(cb.getAttribute('data-size')));
+            if (has50 && customerType !== 'business') {
+                alert('50kg tanks can only be sold to business customers.');
+                return false;
+            }
+            return true;
         }
 
         // When quantity changes, limit tank selection
@@ -232,6 +265,7 @@
                 updateQuantityFromSelection();
                 limitSelection();
                 autoPrice();
+                enforceBusinessFor50kg();
             });
         });
 
@@ -242,10 +276,17 @@
                 alert('Quantity must match the number of selected tanks. Please adjust your selection.');
                 return false;
             }
+            if (!enforceBusinessFor50kg()) {
+                e.preventDefault();
+                return false;
+            }
         });
 
         // Initialize
         limitSelection();
         autoPrice();
+        document.getElementById('customer-select').addEventListener('change', () => {
+            enforceBusinessFor50kg();
+        });
     })();
 </script>

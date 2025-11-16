@@ -22,8 +22,8 @@ class PurchaseOrderController extends Controller
         $this->ensureManager();
         $orders = PurchaseOrder::with('supplier')->latest()->paginate(25);
         $suppliers = Supplier::orderBy('first_name')->get();
-        $brandPrices50 = config('tank_prices.50kg', []);
-        return view('purchase_orders.index', compact('orders', 'suppliers', 'brandPrices50'));
+        $priceMap = config('tank_prices', []);
+        return view('purchase_orders.index', compact('orders', 'suppliers', 'priceMap'));
     }
 
     public function store(Request $request)
@@ -57,10 +57,18 @@ class PurchaseOrderController extends Controller
         }
 
         $brandKey = strtolower(trim($data['brand']));
-        $sizeKey = strtolower(trim($data['size']));
-        $priceMap50 = config('tank_prices.50kg', []);
-        $is50 = in_array($sizeKey, ['50kg','50 kg','50']) || str_contains($sizeKey,'50');
-        $unitPrice = ($is50 && isset($priceMap50[$brandKey])) ? (float)$priceMap50[$brandKey] : (float)($data['unit_price'] ?? 0);
+        $sizeRaw = strtolower(trim($data['size']));
+        $normalizeSize = function($s){
+            if ($s === '50kg' || $s === '50 kg' || $s === '50' || str_contains($s,'50')) return '50kg';
+            if ($s === '11kg' || $s === '11 kg' || str_contains($s,'11')) return '11kg';
+            if ($s === '2.7kg' || $s === '2.7 kg' || str_contains($s,'2.7')) return '2.7kg';
+            return null;
+        };
+        $sizeKey = $normalizeSize($sizeRaw);
+        $priceMap = config('tank_prices', []);
+        $unitPrice = ($sizeKey && isset($priceMap[$sizeKey]) && isset($priceMap[$sizeKey][$brandKey]))
+            ? (float)$priceMap[$sizeKey][$brandKey]
+            : (float)($data['unit_price'] ?? 0);
         $total = $unitPrice * (int)$data['quantity'];
 
         $order = PurchaseOrder::create([
