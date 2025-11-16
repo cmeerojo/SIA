@@ -127,9 +127,9 @@
             </div>
 
             <!-- Tables -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
                 <!-- Monthly Totals Table -->
-                <div class="bg-white p-6 rounded-lg shadow">
+                <div class="bg-white p-6 rounded-lg shadow lg:col-span-1">
                     <h3 class="text-lg font-medium mb-4">Monthly Totals</h3>
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm">
@@ -158,7 +158,7 @@
                 </div>
 
                 <!-- Top Customers Table -->
-                <div class="bg-white p-6 rounded-lg shadow">
+                <div class="bg-white p-6 rounded-lg shadow lg:col-span-1">
                     <h3 class="text-lg font-medium mb-4">Top Customers (Last 30 Days)</h3>
                     <div class="overflow-x-auto">
                         <table class="min-w-full text-sm">
@@ -180,6 +180,44 @@
                                 <tr>
                                     <td colspan="3" class="py-4 text-gray-500">No sales in the last 30 days.</td>
                                 </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Brand & Size Breakdown -->
+                <div class="bg-white p-6 rounded-lg shadow lg:col-span-1">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-medium">Brand & Size Sold</h3>
+                        <div class="flex items-center gap-2">
+                            <label for="brandSizeMonth" class="text-sm text-gray-600">Month</label>
+                            <select id="brandSizeMonth" class="border rounded px-2 pr-8 md:pr-10 py-1 text-sm min-w-[12rem]">
+                                @foreach($last12Months as $m)
+                                    <option value="{{ $m['ym'] }}" @selected($m['ym'] === $currentYm)>{{ $m['label'] }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full text-sm">
+                            <thead>
+                                <tr class="text-left text-gray-600 border-b">
+                                    <th class="py-2 pr-4">Brand</th>
+                                    <th class="py-2 pr-4">Size</th>
+                                    <th class="py-2 pr-4 text-right">Quantity</th>
+                                </tr>
+                            </thead>
+                            <tbody id="brandSizeBody">
+                                @php $ymSel = $currentYm; @endphp
+                                @forelse($brandSizeRows as $row)
+                                    <tr data-ym="{{ $row['ym'] }}" class="border-b last:border-0" style="display: {{ $row['ym'] === $ymSel ? 'table-row' : 'none' }};">
+                                        <td class="py-2 pr-4 capitalize">{{ $row['brand'] }}</td>
+                                        <td class="py-2 pr-4">{{ strtoupper($row['size']) }}</td>
+                                        <td class="py-2 pr-4 text-right font-semibold">{{ $row['qty'] }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="3" class="py-3 text-gray-500">No data.</td></tr>
                                 @endforelse
                             </tbody>
                         </table>
@@ -330,6 +368,18 @@
                 }
             }
         });
+
+        // Brand/Size month filter
+        (function(){
+            const sel = document.getElementById('brandSizeMonth');
+            const rows = Array.from(document.querySelectorAll('#brandSizeBody tr[data-ym]'));
+            if (!sel || rows.length === 0) return;
+            function apply(){
+                const ym = sel.value;
+                rows.forEach(r => { r.style.display = (r.getAttribute('data-ym') === ym) ? 'table-row' : 'none'; });
+            }
+            sel.addEventListener('change', apply);
+        })();
     </script>
 
     @include('sales._add_sale_modal')

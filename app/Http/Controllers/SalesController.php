@@ -8,6 +8,7 @@ use App\Models\Tank;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class SalesController extends Controller
 {
@@ -104,6 +105,42 @@ class SalesController extends Controller
             ->limit(10)
             ->get();
 
+        // Brand/Size breakdown per month (last 12 months, completed sales only)
+        $normalizeSize = function($s){
+            $s = strtolower(trim((string)$s));
+            if ($s === '50kg' || $s === '50 kg' || $s === '50' || strpos($s,'50') !== false) return '50kg';
+            if ($s === '11kg' || $s === '11 kg' || strpos($s,'11') !== false) return '11kg';
+            if ($s === '2.7kg' || $s === '2.7 kg' || $s === '2kg' || strpos($s,'2.7') !== false) return '2.7kg';
+            if ($s === '5kg' || $s === '5 kg' || $s === '5') return '5kg';
+            return $s ?: 'unknown';
+        };
+        $normalizeBrand = function($b){
+            $b = strtolower(trim((string)$b));
+            return $b ?: 'unknown';
+        };
+
+        $brandSizeRaw = DB::table('sales')
+            ->join('sale_tanks', 'sales.id', '=', 'sale_tanks.sale_id')
+            ->join('tanks', 'sale_tanks.tank_id', '=', 'tanks.id')
+            ->where('sales.created_at', '>=', $startOfWindow)
+            ->where('sales.status', '=', 'completed')
+            ->selectRaw("DATE_FORMAT(sales.created_at, '%Y-%m') as ym, tanks.brand as brand, tanks.size as size, COUNT(tanks.id) as qty")
+            ->groupBy('ym', 'brand', 'size')
+            ->orderBy('ym')
+            ->get();
+
+        // Flatten rows with normalized keys and attach readable month label
+        $brandSizeRows = $brandSizeRaw->map(function($r) use ($normalizeBrand, $normalizeSize) {
+            return [
+                'ym' => $r->ym,
+                'brand' => $normalizeBrand($r->brand),
+                'size' => $normalizeSize($r->size),
+                'qty' => (int)$r->qty,
+            ];
+        })->toArray();
+
+        $currentYm = Carbon::now()->format('Y-m');
+
         return view('sales.overview', compact(
             'completedAmountToday', 
             'pendingAmountToday', 
@@ -116,7 +153,9 @@ class SalesController extends Controller
             'salesByPaymentMethod',
             'topCustomers',
             'customers',
-            'tanks'
+            'tanks',
+            'brandSizeRows',
+            'currentYm'
         ));
     }
 
