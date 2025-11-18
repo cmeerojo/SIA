@@ -36,7 +36,7 @@
 <div class="container">
     <div class="header">
         <div>
-            <div class="brand">{{ config('app.name') }}</div>
+            <div class="brand">Rocorps Enterprises</div>
             <div class="sub">Official Receipt</div>
         </div>
         <div class="meta">
