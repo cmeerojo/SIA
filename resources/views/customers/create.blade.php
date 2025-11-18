@@ -78,12 +78,7 @@
                                        class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
                                        placeholder="business@example.com">
                             </div>
-                            <div>
-                                <label for="phone" class="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
-                                <input id="phone" type="text" name="phone" value="{{ old('phone') }}"
-                                       class="w-full border border-gray-300 rounded-lg px-4 py-3 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition"
-                                       placeholder="+1 (555) 123-4567">
-                            </div>
+                            
                         </div>
 
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 mt-4">

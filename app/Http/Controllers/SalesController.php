@@ -285,6 +285,11 @@ class SalesController extends Controller
         }
         $finalPrice = $autoUsed ? $computedTotal : (float)$request->price;
 
+        // Guard: prevent zero-price sale
+        if ($finalPrice <= 0) {
+            return redirect()->back()->withErrors(['price' => 'Cannot create a sale with price 0.']).withInput();
+        }
+
         // Create sale
         $sale = Sale::create([
             'customer_id' => $request->customer_id,
@@ -437,6 +442,11 @@ class SalesController extends Controller
             }
         }
         $finalPrice = $autoUsed ? $computedTotal : (float)$request->price;
+
+        // Guard: prevent zero-price update
+        if ($finalPrice <= 0) {
+            return redirect()->back()->withErrors(['price' => 'Cannot set sale price to 0.']).withInput();
+        }
 
         // Update sale
         $sale->update([

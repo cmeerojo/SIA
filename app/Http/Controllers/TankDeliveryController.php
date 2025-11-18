@@ -66,7 +66,8 @@ class TankDeliveryController extends Controller
                 'customer_id' => $sale->customer_id,
                 'driver_id' => $validated['driver_id'] ?? null,
                 'vehicle_id' => $validated['vehicle_id'] ?? null,
-                'date_delivered' => $validated['date_delivered'] ?? now(),
+                // Defer stamping actual delivery datetime until status becomes 'completed'
+                'date_delivered' => null,
                 'start_location' => 'Legal Street, Pantukan, Davao de Oro',
                 'dropoff_location' => $sale->customer?->dropoff_location,
                 'status' => 'pending',
@@ -125,8 +126,12 @@ class TankDeliveryController extends Controller
         ]);
 
         $tank_delivery->status = $validated['status'];
-        if ($validated['status'] === 'completed' && !$tank_delivery->date_delivered) {
+        if ($validated['status'] === 'completed') {
+            // Always stamp (or restamp) the completion time to now when completed
             $tank_delivery->date_delivered = now();
+        } elseif (in_array($validated['status'], ['pending','started'])) {
+            // If reverting from completed to an earlier phase, clear the delivery timestamp
+            $tank_delivery->date_delivered = null;
         }
         $tank_delivery->save();
 

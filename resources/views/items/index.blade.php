@@ -253,7 +253,14 @@
                 </div>
                 <div>
                     <label class="text-sm font-medium">Brand</label>
-                    <input type="text" name="brand" class="w-full mt-1 border rounded px-3 py-2">
+                    <select name="brand" class="w-full mt-1 border rounded px-3 py-2" required>
+                        <option value="" selected disabled>Select brand</option>
+                        <option value="solane">Solane</option>
+                        <option value="petron">Petron</option>
+                        <option value="pryce">Pryce</option>
+                        <option value="petronas">Petronas</option>
+                        <option value="phoenix">Phoenix</option>
+                    </select>
                 </div>
                 <div>
                     <label class="text-sm font-medium">Size</label>
@@ -311,7 +318,13 @@
                 </div>
                 <div>
                     <label class="text-sm font-medium">Brand</label>
-                    <input type="text" name="brand" id="edit-brand" class="w-full mt-1 border rounded px-3 py-2">
+                    <select name="brand" id="edit-brand" class="w-full mt-1 border rounded px-3 py-2" required>
+                        <option value="solane">Solane</option>
+                        <option value="petron">Petron</option>
+                        <option value="pryce">Pryce</option>
+                        <option value="petronas">Petronas</option>
+                        <option value="phoenix">Phoenix</option>
+                    </select>
                 </div>
                 <div>
                     <label class="text-sm font-medium">Valve Type</label>
@@ -358,7 +371,7 @@
 
             document.getElementById('edit-serial_code').value = serial;
             document.getElementById('edit-status').value = status;
-            document.getElementById('edit-brand').value = brand || '';
+            document.getElementById('edit-brand').value = (brand || '').toLowerCase();
             document.getElementById('edit-valve_type').value = valve || '';
 
             // set form action to the tank update route

@@ -12,7 +12,14 @@
             </div>
             <div class="mb-3">
                 <label class="block text-sm font-medium">Brand</label>
-                <input type="text" name="brand" class="w-full mt-1 border rounded px-3 py-2">
+                <select name="brand" class="w-full mt-1 border rounded px-3 py-2" required>
+                    <option value="" selected disabled>Select brand</option>
+                    <option value="solane">Solane</option>
+                    <option value="petron">Petron</option>
+                    <option value="pryce">Pryce</option>
+                    <option value="petronas">Petronas</option>
+                    <option value="phoenix">Phoenix</option>
+                </select>
             </div>
             <div class="mb-3">
                 <label class="block text-sm font-medium">Size</label>

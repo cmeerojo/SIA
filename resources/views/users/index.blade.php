@@ -5,23 +5,7 @@
         </h2>
     </x-slot>
 
-    <style>
-        .lpg-bg {
-            background: linear-gradient(135deg, #f97316, #ea580c, #dc2626),
-                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3Ccircle cx='10' cy='10' r='2'/%3E%3Ccircle cx='50' cy='50' r='3'/%3E%3Ccircle cx='10' cy='50' r='2'/%3E%3Ccircle cx='50' cy='10' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            background-size: 200% 200%, 60px 60px;
-            animation: gradientShift 8s ease infinite;
-            min-height: 100vh;
-        }
-        
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%, 0 0; }
-            50% { background-position: 100% 50%, 30px 30px; }
-            100% { background-position: 0% 50%, 0 0; }
-        }
-    </style>
-
-    <div class="lpg-bg py-12">
+    <div class="py-12 bg-gradient-to-br from-orange-50 to-red-50 min-h-screen">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
@@ -66,7 +50,7 @@
                                                 <form action="{{ route('users.block', $user) }}" method="POST" class="inline">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button type="submit" class="text-yellow-600 hover:text-yellow-900 mr-2" onclick="return confirm('Are you sure you want to {{ $user->is_active ? 'block' : 'unblock' }} this user?')">
+                                                    <button type="submit" class="text-orange-600 hover:text-orange-900 mr-2 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 rounded" onclick="return confirm('Are you sure you want to {{ $user->is_active ? 'block' : 'unblock' }} this user?')">
                                                         {{ $user->is_active ? 'Block' : 'Unblock' }}
                                                     </button>
                                                 </form>

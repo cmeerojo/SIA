@@ -67,6 +67,7 @@
                         <label class="text-sm">Price</label>
                         <input id="price-input" type="number" step="0.01" name="price" required class="w-full border rounded px-3 py-2 focus:ring-2 focus:ring-orange-200" />
                         <p id="auto-price-hint" class="text-xs text-gray-500 mt-1" style="display:none;">Auto-calculated from size/brand pricing.</p>
+                        <p id="price-zero-error" class="text-xs text-red-500 mt-1" style="display:none;">Price must be greater than zero.</p>
                     </div>
 
                     <div>
@@ -97,7 +98,7 @@
 
                 <div class="mt-4 flex justify-end space-x-2">
                     <button type="button" onclick="toggleAddSaleModal(false)" class="px-4 py-2 rounded border">Cancel</button>
-                    <button type="submit" class="px-4 py-2 rounded bg-gradient-to-r from-green-500 to-green-600 text-white shadow">Save Sale</button>
+                    <button id="add-sale-submit" type="submit" class="px-4 py-2 rounded bg-gradient-to-r from-green-500 to-green-600 text-white shadow disabled:opacity-50 disabled:cursor-not-allowed">Save Sale</button>
                 </div>
             </form>
         </div>
@@ -156,6 +157,7 @@
         };
         const form = document.getElementById('add-sale-form');
         const errorMsg = document.getElementById('tank-selection-error');
+        const customerSel = document.getElementById('customer-select');
 
         function updateQuantityFromSelection() {
             const selectedCount = document.querySelectorAll('.tank-checkbox:checked').length;
@@ -239,10 +241,10 @@
             } else {
                 if (autoHint) autoHint.style.display = 'none';
             }
+            updateSubmitDisabled();
         }
 
         function enforceBusinessFor50kg() {
-            const customerSel = document.getElementById('customer-select');
             const customerType = (customerSel.options[customerSel.selectedIndex]?.dataset.type || 'customer').toLowerCase();
             const has50 = Array.from(document.querySelectorAll('.tank-checkbox:checked')).some(cb => is50kg(cb.getAttribute('data-size')));
             if (has50 && customerType !== 'business') {
@@ -250,6 +252,27 @@
                 return false;
             }
             return true;
+        }
+
+        function updateTankVisibility() {
+            const type = (customerSel.options[customerSel.selectedIndex]?.dataset.type || 'customer').toLowerCase();
+            const hide50 = type !== 'business';
+            const items = Array.from(document.querySelectorAll('#tank-checkboxes label'));
+            items.forEach(lbl => {
+                const cb = lbl.querySelector('.tank-checkbox');
+                if (!cb) return;
+                const isBig = is50kg(cb.getAttribute('data-size'));
+                if (hide50 && isBig) {
+                    cb.checked = false;
+                    lbl.style.display = 'none';
+                } else {
+                    lbl.style.display = '';
+                }
+            });
+            // Re-run constraints after visibility change
+            updateQuantityFromSelection();
+            limitSelection();
+            autoPrice();
         }
 
         // When quantity changes, limit tank selection
@@ -269,6 +292,21 @@
             });
         });
 
+        // Disable submit when price is zero
+        const submitBtn = document.getElementById('add-sale-submit');
+        const zeroErr = document.getElementById('price-zero-error');
+        function updateSubmitDisabled(){
+            const val = parseFloat(priceInput.value || '0');
+            if (!isFinite(val) || val <= 0){
+                submitBtn.disabled = true;
+                if (zeroErr) zeroErr.style.display = '';
+            } else {
+                submitBtn.disabled = false;
+                if (zeroErr) zeroErr.style.display = 'none';
+            }
+        }
+        priceInput.addEventListener('input', updateSubmitDisabled);
+
         // Validate on form submit
         form.addEventListener('submit', function(e) {
             if (!validateSelection()) {
@@ -280,13 +318,25 @@
                 e.preventDefault();
                 return false;
             }
+            updateSubmitDisabled();
+            if (submitBtn.disabled){
+                e.preventDefault();
+                alert('Cannot save sale with price 0.');
+                return false;
+            }
         });
 
         // Initialize
         limitSelection();
         autoPrice();
-        document.getElementById('customer-select').addEventListener('change', () => {
+        updateSubmitDisabled();
+        customerSel.addEventListener('change', () => {
+            updateTankVisibility();
             enforceBusinessFor50kg();
+            autoPrice();
         });
+
+        // Initial visibility pass (in case a customer is preselected)
+        updateTankVisibility();
     })();
 </script>

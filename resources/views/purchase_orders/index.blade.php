@@ -211,31 +211,52 @@
             const unit = document.getElementById('unit_price');
             const hint = document.getElementById('unitPriceHint');
             const totalDisplay = document.getElementById('total_display');
+            const form = document.getElementById('po-form');
             function is50kg(v){ v=(v||'').toLowerCase(); return v==='50kg'||v==='50 kg'||v==='50'||v.indexOf('50')!==-1; }
             function normalizeSize(v){ v=(v||'').toLowerCase(); if(is50kg(v)) return '50kg'; if(v==='11kg'||v==='11 kg'||v.indexOf('11')!==-1) return '11kg'; if(v==='2.7kg'||v==='2.7 kg'||v.indexOf('2.7')!==-1) return '2.7kg'; return null; }
             function normalizeBrand(b){ b=(b||'').toLowerCase(); return b; }
             function recalc(){
-                let sizeKey = normalizeSize(sizeSel.value);
-                let brand = normalizeBrand(brandSel.value);
+                const sizeKey = normalizeSize(sizeSel.value);
+                const brand = normalizeBrand(brandSel.value);
+                const q = parseInt(qty.value)||0;
                 if (sizeKey && priceMap[sizeKey] && priceMap[sizeKey][brand] != null){
-                    unit.value = parseFloat(priceMap[sizeKey][brand]).toFixed(2);
+                    const perUnit = parseFloat(priceMap[sizeKey][brand]);
+                    unit.dataset.perUnit = perUnit.toFixed(2);
+                    unit.value = (perUnit * q).toFixed(2); // show aggregated price for all units
                     unit.dataset.autofilled = 'true';
                     hint.classList.remove('invisible');
                 } else {
                     hint.classList.add('invisible');
                     if (unit.dataset.autofilled === 'true') {
                         unit.value = '';
+                        unit.dataset.perUnit = '';
                         unit.dataset.autofilled = 'false';
                     }
                 }
-                const q = parseInt(qty.value)||0; const up = parseFloat(unit.value)||0;
-                totalDisplay.textContent = '₱'+(q*up).toFixed(2);
+                // Total equals displayed (aggregated) price when autofilled; otherwise manual unit * qty
+                if (unit.dataset.autofilled === 'true') {
+                    totalDisplay.textContent = '₱'+ (parseFloat(unit.value)||0).toFixed(2);
+                } else {
+                    const up = parseFloat(unit.value)||0;
+                    totalDisplay.textContent = '₱'+ (q*up).toFixed(2);
+                }
             }
             [brandSel,sizeSel,qty,unit].forEach(el=> {
                 el.addEventListener('input', recalc);
                 el.addEventListener('change', recalc);
             });
-            unit.addEventListener('input', ()=>{ unit.dataset.autofilled = 'false'; });
+            unit.addEventListener('input', ()=>{ unit.dataset.autofilled = 'false'; unit.dataset.perUnit=''; recalc(); });
+            // Before submit, if autofilled & aggregated, revert unit_price to per-unit for server calculation
+            if (form) {
+                form.addEventListener('submit', () => {
+                    if (unit.dataset.autofilled === 'true') {
+                        const perUnit = unit.dataset.perUnit;
+                        if (perUnit) {
+                            unit.value = perUnit; // send per-unit price to server
+                        }
+                    }
+                });
+            }
             recalc();
         })();
     </script>
